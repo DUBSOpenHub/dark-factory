@@ -1,0 +1,50 @@
+# Dark Factory Configuration
+# Tunables for the factory pipeline
+
+factory:
+  # Default pipeline mode: "full" (6 phases) or "express" (3 phases)
+  default_mode: full
+
+  # Maximum hardening cycles before escalating to user
+  max_hardening_cycles: 3
+
+  # Auto-detect express mode for short prompts (< N words)
+  express_threshold_words: 15
+
+isolation:
+  # Workspace root (relative to cwd)
+  workspace_root: .factory
+
+  # Branch prefix for worktree branches
+  branch_prefix: factory/
+
+  # Sealed test directory (outside worktree)
+  sealed_dir: .factory/sealed
+
+  # State file for crash recovery
+  state_file: .factory/state.json
+
+models:
+  # Speed Stack — model routing by role
+  # Options: claude-haiku-4.5, claude-sonnet-4.6, claude-opus-4.6
+  product_mgr: claude-sonnet-4.6
+  architect: claude-sonnet-4.6
+  qa_sealed: claude-sonnet-4.6
+  lead_eng: claude-sonnet-4.6
+  qa_validator: claude-haiku-4.5
+
+  # Premium override — when user says "dark factory premium"
+  premium_model: claude-opus-4.6
+
+checkpoints:
+  # Which phases get human checkpoints
+  # In express mode, only "delivery" checkpoint is used
+  gates:
+    - after_prd        # Phase 1 → approve spec
+    - after_arch       # Phase 2 → approve architecture
+    - after_build      # Phase 3 → review code
+    - after_validation # Phase 4 → review gap analysis
+    - delivery         # Phase 6 → approve or reject merge
+
+  # Allow "skip-all" to go fully dark
+  allow_skip_all: true

@@ -1,0 +1,25 @@
+schema_version: "1"
+id: dark-factory
+name: Dark Factory
+description: >
+  Agentic dark factory for AI building. Orchestrates a team of 5 specialist agents
+  (Product Manager, Architect, QA Sealed, Engineer, QA Validator) through a
+  checkpoint-gated pipeline with sealed-envelope testing. Builds production-ready
+  code in an isolated git worktree. Say "dark factory" to start.
+emoji: "🏭"
+codename: Lights Out
+category: specialist
+version: "0.1.0"
+tags: [factory, orchestrator, multi-agent, sealed-testing, dark-factory, pipeline, copilot-cli]
+platforms: [copilot-cli]
+input_format: free-text
+links:
+  skill_file: SKILL.md
+  agents:
+    - agents/product-mgr.md
+    - agents/architect.md
+    - agents/qa-sealed.md
+    - agents/lead-eng.md
+    - agents/qa-validator.md
+license: MIT
+owner: DUBSOpenHub
