@@ -12,13 +12,39 @@ Since Dark Factory is a conversational AI skill (not traditional code), testing 
 
 ---
 
+## What "good" output looks like
+
+A healthy run includes:
+
+- A factory banner with **run ID** and **mode**
+- Checkpoints with the correct `ask_user` options
+- A sealed hash displayed after Phase 2 (Full mode)
+- A delivery report at the end
+
+Example snippets:
+
+```text
+🏭 Factory floor is hot. Run run-20260223-2130 initialized.
+🏭 Mode: FULL
+```
+
+```text
+🏭 Phase 2 complete — Architecture drafted, tests sealed. 🔒 Hash: sha256:...
+```
+
+```text
+🏭 Phase 4 complete — Sealed envelope opened. Gap score: 0%
+```
+
+---
+
 ## Playbooks
 
 ### Playbook 1: Full Pipeline — Basic Build
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | `dark factory — build a fizzbuzz CLI tool` | Factory banner, mode=FULL, run ID, agent lineup |
+| 1 | `dark factory "build a fizzbuzz CLI tool"` | Factory banner, mode=FULL, run ID, agent lineup |
 | 2 | *(Phase 1 runs)* | PRD.md created, Checkpoint 1 presented |
 | 3 | Approve | Phase 2 starts — architect + qa-sealed in parallel |
 | 4 | *(Phase 2 completes)* | ARCH.md created, sealed hash displayed, Checkpoint 2 |
@@ -33,8 +59,8 @@ Since Dark Factory is a conversational AI skill (not traditional code), testing 
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | `dark factory express — add retry logic to fetch()` | Mode=EXPRESS, skip PRD/arch |
-| 2 | *(build + validate)* | Code written, sealed tests from raw goal |
+| 1 | `dark factory express "add retry logic to fetch()"` | Mode=EXPRESS, skip PRD/arch |
+| 2 | *(build + validate)* | Sealed tests generated from raw goal (hidden) |
 | 3 | *(delivery)* | ONE checkpoint only — approve or reject |
 
 ### Playbook 3: Sealed-Envelope Integrity
@@ -45,7 +71,7 @@ Since Dark Factory is a conversational AI skill (not traditional code), testing 
 | 2 | At Checkpoint 2 | SHA-256 hash shown for sealed tests |
 | 3 | At Phase 4 | Sealed tests run independently |
 | 4 | Verify | Engineer never saw sealed test code in Phases 1-3 |
-| 5 | If gaps exist | Hardening shows failure MESSAGES only (no test code) |
+| 5 | If gaps exist | Hardening shows failure messages only (no test code) |
 
 ### Playbook 4: Resume After Crash
 
@@ -61,7 +87,7 @@ Since Dark Factory is a conversational AI skill (not traditional code), testing 
 |------|---------|----------|
 | 1 | Start a factory run | Worktree created |
 | 2 | At any checkpoint, select "Abort" | Worktree removed, branch deleted |
-| 3 | Verify | No .factory/ artifacts remain, git status clean |
+| 3 | Verify | No `.factory/runs/` worktrees remain |
 
 ### Playbook 6: Skip-All (Go Dark)
 
@@ -86,7 +112,7 @@ Since Dark Factory is a conversational AI skill (not traditional code), testing 
 | 1 | Complete Phase 4 with gap score > 0% | Hardening begins |
 | 2 | *(cycle 1)* | Engineer gets failure messages, fixes code |
 | 3 | *(re-validate)* | If still failing, cycle 2 |
-| 4 | *(after 3 cycles)* | Escalation: continue-hardening / deliver-as-is / abort |
+| 4 | *(after max cycles)* | Escalation: continue-hardening / deliver-as-is / abort |
 
 ---
 
@@ -99,12 +125,12 @@ Before submitting changes, verify:
 - [ ] 🏗️ ARCH.md produced with components, file structure, tech choices
 - [ ] 🔒 Sealed tests generated from PRD only (never from code/arch)
 - [ ] 🔒 SHA-256 hash of sealed directory displayed at Phase 2
-- [ ] 👩‍💻 Engineer never accesses .factory/sealed/ during build
+- [ ] 👩‍💻 Engineer never accesses `.factory/sealed/` during build
 - [ ] ✅ Both test suites run in Phase 4
 - [ ] 📊 GAP-REPORT.md produced with gap score
 - [ ] 🔧 Hardening sends failure messages only (no test code)
-- [ ] 🔧 Hardening caps at 3 cycles, then escalates
-- [ ] 📋 Checkpoints use ask_user with 4 choices
+- [ ] 🔧 Hardening caps at configured max cycles, then escalates
+- [ ] 📋 Checkpoints use `ask_user` with exactly 4 choices
 - [ ] ⏭️ Skip-all still shows final delivery checkpoint
 - [ ] 💾 state.json written on every phase transition
 - [ ] 🔄 Resume works from state.json
@@ -114,15 +140,18 @@ Before submitting changes, verify:
 
 ---
 
-## Validation Commands
+## Validation commands
 
 ```bash
-# Verify YAML syntax
-python3 -c "import yaml; yaml.safe_load(open('catalog.yml'))" && echo "✅ YAML valid"
+# YAML syntax (Ruby has YAML built-in)
+ruby -e 'require "yaml"; YAML.load_file("catalog.yml"); YAML.load_file("config.yml")'
 
-# Count agent lines (should be < 150 each)
+# Catalog references exist
+ruby -e 'require "yaml"; c=YAML.load_file("catalog.yml"); refs=[c.dig("links","skill_file")]+(c.dig("links","agents")||[]); refs.compact.each{|p| abort("missing: #{p}") unless File.file?(p)}; puts "ok"'
+
+# Count agent lines (should be <= 200)
 wc -l agents/*.md
 
 # Verify SKILL.md has frontmatter
-head -1 SKILL.md | grep -q "^---" && echo "✅ Frontmatter present"
+head -1 SKILL.md | grep -q '^---' && echo '✅ Frontmatter present'
 ```

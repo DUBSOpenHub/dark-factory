@@ -6,15 +6,16 @@ This file tells any AI agent how to work effectively on the Dark Factory codebas
 
 ## Architecture
 
-Dark Factory is a **Copilot CLI skill** that orchestrates 5 specialist agents through a checkpoint-gated pipeline with sealed-envelope testing.
+Dark Factory is a **Copilot CLI skill** that orchestrates 6 specialist agents through a checkpoint-gated pipeline with sealed-envelope testing.
 
 ```
 SKILL.md (Factory Manager / Orchestrator)
-  ├── agents/product-mgr.md   → Phase 1: writes PRD.md
-  ├── agents/architect.md     → Phase 2b: writes ARCH.md
-  ├── agents/qa-sealed.md     → Phase 2a: writes sealed tests (parallel with arch)
-  ├── agents/lead-eng.md      → Phase 3: writes code + open tests
-  └── agents/qa-validator.md  → Phase 4: runs sealed tests, gap analysis
+  ├── agents/product-mgr.md       → Phase 1: writes PRD.md
+  ├── agents/architect.md         → Phase 2b: writes ARCH.md
+  ├── agents/qa-sealed.md         → Phase 2a: writes sealed tests (parallel with arch)
+  ├── agents/lead-eng.md          → Phase 3: writes code + open tests
+  ├── agents/qa-validator.md      → Phase 4: runs sealed tests, gap analysis
+  └── agents/outcome-evaluator.md → Phase 7: evaluates post-ship outcomes
 ```
 
 Each agent is called via `task()` with explicit inputs. Agents are stateless — they receive ONLY what the handoff manifest specifies.
@@ -27,6 +28,7 @@ Each agent is called via `task()` with explicit inputs. Agents are stateless —
 |----------|-------|-------------|
 | `SKILL.md` | Orchestrator logic | Most critical file. Changes affect all phases. |
 | `agents/*.md` | Individual agent prompts | Change one agent at a time. Test with a factory run. |
+| `agents/outcome-evaluator.md` | Post-ship analysis prompt | Keep KPI math aligned with PRD template + config `outcome_evaluation` settings. |
 | `config.yml` | User-tunable settings | Never hardcode values that belong here. |
 | `templates/*.md` | Output format templates | Keep in sync with agent prompts that reference them. |
 | `protocols/*.md` | Reusable protocol defs | Referenced by SKILL.md and agent prompts. |

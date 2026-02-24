@@ -72,3 +72,85 @@
   2. {step_2}
   3. {step_3}
 ```
+
+<!--
+Example (filled in):
+## Overview
+CLI auditor parses dependency manifests, normalizes licenses, and writes reports.
+
+## System Design
+### Components
+| Component | Responsibility | Files |
+| CLI Runner | Parse args, orchestrate scan | src/cli.ts |
+| Manifest Parser | Load manifests | src/parsers/*.ts |
+| Report Engine | Render tables/CSV | src/report.ts |
+
+### Data Flow
+manifest → parser → normalized graph → reporter → console/CSV
+
+## Technology Choices
+| Choice | Why |
+| Node.js | Existing tooling, cross-platform |
+
+## File Structure
+```
+src/
+  cli.ts
+  parsers/
+    package-lock.ts
+```
+
+## Integration Points
+- GitHub REST API: fetch license metadata
+
+## Security Considerations
+- Never execute manifest scripts
+
+## Error Handling Strategy
+- Wrap IO errors and exit with non-zero status
+
+## API Contracts
+### CLI
+- **Command:** `df-lic scan <path>`
+- **Response:** stdout table + optional CSV
+
+## Data Schemas
+### LicenseFinding
+| Field | Type | Required | Description |
+| name | string | yes | Dependency id |
+
+## Interface Definitions
+### ReportEngine
+```
+interface ReportEngine {
+  renderTable(findings: LicenseFinding[]): string;
+}
+```
+
+## Sequence Diagrams
+### Scan Flow
+```
+User → CLI → Parser → Reporter → User
+ 1. User runs CLI
+ 2. Parser loads manifests
+ 3. Reporter prints summary
+```
+-->
+
+<!--
+WORKED EXAMPLE:
+# Architecture Document
+
+## Overview
+A Python CLI tool using `argparse` to accept an integer and print the Fibonacci number.
+
+## System Design
+### Components
+| Component | Responsibility | Files |
+|-----------|---------------|-------|
+| CLI Parser | Handle user input | `main.py` |
+| Core Logic | Calculate sequence | `fib.py` |
+
+### Data Flow
+User Input (Int) -> ArgParse -> fib() -> Stdout
+-->
