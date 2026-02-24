@@ -1,5 +1,8 @@
 # Sealed-Envelope Testing Protocol
 
+> **Canonical specification:** [Gap Score Spec v1.0.0](https://github.com/DUBSOpenHub/gap-score-spec/blob/main/SPEC.md)
+> Dark Factory is the reference Level 3 implementation.
+
 ## Purpose
 
 The sealed-envelope protocol ensures that the quality assessment of factory-built code is independent and unbiased. Tests are generated from the specification BEFORE code is written, and building agents NEVER see the sealed tests.
