@@ -32,6 +32,7 @@ models:
   qa_sealed: claude-sonnet-4.6
   lead_eng: claude-sonnet-4.6
   qa_validator: claude-haiku-4.5
+  outcome_evaluator: claude-sonnet-4.6
 
   # Premium override — when user says "dark factory premium"
   premium_model: claude-opus-4.6
@@ -48,3 +49,10 @@ checkpoints:
 
   # Allow "skip-all" to go fully dark
   allow_skip_all: true
+
+outcome_evaluation:
+  # Auto-trigger evaluation N days after delivery (0 = manual only)
+  auto_evaluate_after_days: 0
+
+  # Archive artifacts for post-ship evaluation
+  archive_dir: .factory/archive

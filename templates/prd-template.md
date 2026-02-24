@@ -42,3 +42,27 @@
 
 ## Open Questions
 - {question_1}
+
+## Strategic Context
+
+### Objective
+{objective_this_maps_to}
+
+### Key Results
+1. {key_result_1}
+2. {key_result_2}
+3. {key_result_3}
+
+### KPIs
+| KPI | Baseline | Target | Measurement Method |
+|-----|----------|--------|-------------------|
+| {kpi_name} | {current} | {target} | {how_measured} |
+
+## Stakeholder Map
+
+| Stakeholder | Interest | Impact Level |
+|-------------|----------|-------------|
+| {stakeholder} | {what_they_care_about} | {High/Med/Low} |
+
+## Market Context
+{competitive_landscape_and_prior_art}
