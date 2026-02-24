@@ -1,0 +1,118 @@
+name: Validate Dark Factory
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install YAML parser
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyyaml
+
+      - name: Validate YAML syntax
+        run: |
+          python - <<'PY'
+          import yaml
+          for path in ("config.yml", "catalog.yml"):
+              with open(path, "r", encoding="utf-8") as f:
+                  yaml.safe_load(f)
+          print("✅ YAML valid")
+          PY
+
+      - name: Verify catalog references exist
+        run: |
+          python - <<'PY'
+          import pathlib, sys
+          import yaml
+
+          root = pathlib.Path(".")
+          catalog = yaml.safe_load(root.joinpath("catalog.yml").read_text(encoding="utf-8"))
+          links = catalog.get("links", {}) or {}
+
+          referenced = []
+          if links.get("skill_file"):
+              referenced.append(links["skill_file"])
+          referenced.extend(list(links.get("agents", []) or []))
+
+          missing = [p for p in referenced if not root.joinpath(p).is_file()]
+          if missing:
+              print("::error::catalog.yml references missing files")
+              for p in missing:
+                  print(f"- {p}")
+              sys.exit(1)
+
+          print("✅ Catalog references valid")
+          PY
+
+      - name: Check agent line counts (<= 200)
+        run: |
+          for file in agents/*.md; do
+            lines=$(wc -l < "$file")
+            if [ "$lines" -gt 200 ]; then
+              echo "::error file=$file::Agent prompt exceeds 200 lines ($lines lines)"
+              exit 1
+            fi
+          done
+          echo "✅ Agent prompts within limit"
+
+      - name: Verify SKILL.md frontmatter
+        run: |
+          python - <<'PY'
+          import pathlib, sys
+
+          lines = pathlib.Path("SKILL.md").read_text(encoding="utf-8").splitlines()
+          if not lines or lines[0].strip() != "---":
+              print("::error file=SKILL.md::Missing frontmatter start (---)")
+              sys.exit(1)
+
+          try:
+              end = lines[1:200].index("---") + 1
+          except ValueError:
+              print("::error file=SKILL.md::Missing frontmatter end (---)")
+              sys.exit(1)
+
+          if end < 3:
+              print("::error file=SKILL.md::Frontmatter too short")
+              sys.exit(1)
+
+          print("✅ Frontmatter present")
+          PY
+
+      - name: Set up Node (markdown lint)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli2
+
+      - name: Markdown lint
+        run: |
+          cat > .markdownlint-cli2.jsonc <<'JSON'
+          {
+            "config": {
+              "default": true,
+              "MD013": false,
+              "MD033": false,
+              "MD041": false
+            },
+            "globs": ["**/*.md"],
+            "ignores": ["**/.factory/**", "**/node_modules/**"]
+          }
+          JSON
+          markdownlint-cli2

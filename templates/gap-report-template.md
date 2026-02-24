@@ -1,5 +1,7 @@
 # Sealed-Envelope Gap Analysis Report
 
+> **Format conforms to:** [Gap Score Spec v1.0.0 §5](https://github.com/DUBSOpenHub/gap-score-spec/blob/main/SPEC.md#5-reporting-format)
+
 ## Run Summary
 - **Run ID**: {run_id}
 - **Goal**: {goal}
@@ -20,6 +22,8 @@
 
 ## Gap Score: {percentage}%
 
+_Last line of GAP-REPORT.md must include `GAP_SCORE: {percentage}%` so the orchestrator can parse it._
+
 ```
 Gap = sealed_failures / sealed_total × 100
 
@@ -36,6 +40,23 @@ Gap = sealed_failures / sealed_total × 100
 |---|-----------|----------|--------|-----------------|
 | 1 | {test_name} | {expected} | {actual} | {message_for_engineer} |
 
+## Hardening Payload
+
+Machine-readable failure summary for the Lead Engineer:
+```
+SEALED TEST FAILURES:
+- test_name: expected <X>, got <Y>
+- test_name: raised ErrorType("message")
+```
+
+When all sealed tests pass, use the zero-failure canonical form:
+```
+SEALED TEST FAILURES:
+- none
+```
+
+> **Required:** The last line of GAP-REPORT.md must include `GAP_SCORE: {percentage}%` so the orchestrator can parse it.
+
 ## Coverage Comparison
 
 | Category | Open Tests | Sealed Tests | Gap |
@@ -48,3 +69,64 @@ Gap = sealed_failures / sealed_total × 100
 ## Recommendations
 - {recommendation_1}
 - {recommendation_2}
+
+<!--
+Example (filled in):
+## Run Summary
+- **Run ID**: run-20260401-1215
+- **Goal**: Add license scanner CLI
+- **Mode**: full
+- **Timestamp**: 2026-04-01T12:55:00Z
+
+## Test Results
+### Sealed Tests
+- Total: 18
+- Passed: 16 ✅
+- Failed: 2 ❌
+
+### Open Tests
+- Total: 12
+- Passed: 12 ✅
+- Failed: 0 ❌
+
+## Gap Score: 11.1%
+
+## Sealed Test Failures
+| # | Test Name | Expected | Actual | Failure Message |
+| 1 | rejects_gpl_dependency | CLI exits 2 | exited 0 | GPL dependency not blocked |
+| 2 | csv_report_includes_risk | CSV contains risk column | column missing | Report missing risk metadata |
+
+## Coverage Comparison
+| Category | Open Tests | Sealed Tests | Gap |
+| Happy path | 6 | 6 | 0 |
+| Edge cases | 3 | 5 | +2 |
+| Error handling | 3 | 4 | +1 |
+| Security | 0 | 3 | +3 |
+
+## Recommendations
+- Extend engineer-written tests to include GPL blocking.
+- Add regression test for CSV risk column.
+-->
+
+<!--
+WORKED EXAMPLE:
+# Sealed-Envelope Gap Analysis Report
+
+## Run Summary
+- **Run ID**: run-123
+- **Goal**: Fibonacci Calculator
+- **Mode**: express
+
+## Test Results
+### Sealed Tests
+- Total: 5
+- Passed: 4 ✅
+- Failed: 1 ❌
+
+## Gap Score: 20%
+
+## Sealed Test Failures
+| # | Test Name | Expected | Actual | Failure Message |
+|---|-----------|----------|--------|-----------------|
+| 1 | test_negative_input | "Error" | "0" | Expected "Error" for input -1, got "0" |
+-->

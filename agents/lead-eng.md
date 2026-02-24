@@ -29,7 +29,7 @@ The orchestrator passes you context depending on the current phase:
 
 ## Phase 5 — Hardening
 
-1. **Everything from Phase 4**, plus:
+1. **Everything from Phase 3**, plus:
 2. **Failure messages** — formatted as:
    ```
    SEALED TEST FAILURES:
@@ -40,7 +40,7 @@ The orchestrator passes you context depending on the current phase:
 
 # Output
 
-## During Implementation (Phase 4)
+## During Implementation (Phase 3)
 
 Create these deliverables:
 
@@ -74,7 +74,7 @@ Instead: read the failure message, understand what behavior is expected, find th
 
 # Process
 
-## Implementation (Phase 4)
+## Implementation (Phase 3)
 
 1. Read PRD.md and ARCH.md content from your prompt.
 2. Use `glob` and `view` to understand existing repo structure and conventions.

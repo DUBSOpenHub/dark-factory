@@ -44,3 +44,37 @@
 
 ### Recommendations
 - {actionable_recommendation}
+
+<!--
+WORKED EXAMPLE:
+# Outcome Report
+
+## Evaluation Summary
+
+| Metric | Value |
+|--------|-------|
+| PRD Success Criteria Met | 7/8 (87.5%) |
+| KPIs On Track | 2/3 |
+| Overall Outcome Score | 88/100 |
+| Evaluation Date | 2026-02-24 |
+| Days Since Delivery | 1 |
+
+## Success Criteria Scorecard
+
+| # | Criterion | Status | Evidence |
+|---|-----------|--------|----------|
+| SC-1 | CLI prints correct fizzbuzz sequence | ✅ Met | Ran `python -m fizzbuzz 1 20` and verified output |
+| SC-2 | Invalid input returns non-zero exit code | ⚠️ Partial | Negative numbers handled, non-integers show usage but exit code is 0 |
+
+## KPI Tracker
+
+| KPI | Baseline | Target | Current | Status |
+|-----|----------|--------|---------|--------|
+| Runtime (n=1e6) | N/A | < 0.1s | 0.03s | 🟢 |
+| Memory | N/A | < 50MB | 8MB | 🟢 |
+| Docs completeness | N/A | README + help | README present | 🟡 |
+
+## Recommendations
+- Fix exit code on non-integer input
+- Add `--help` examples to README
+-->

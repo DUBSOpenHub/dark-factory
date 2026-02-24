@@ -1,28 +1,39 @@
 # Copilot Instructions — Dark Factory
 
-This repository contains the **Dark Factory** Copilot CLI skill — an agentic build system that orchestrates specialist AI agents through a sealed-envelope testing pipeline.
+This repository contains **Dark Factory**, a GitHub Copilot CLI skill that orchestrates an agent pipeline with **sealed-envelope testing**.
 
-## Key Concepts
+## File map
 
-- **Sealed-envelope testing**: QA agent generates tests from the PRD *before* code is written. Building agents never see these tests. The gap between builder tests and sealed tests measures build quality.
-- **Checkpoint-gated pipeline**: Each phase runs autonomously, pausing for human approval at phase boundaries.
-- **Git worktree isolation**: All building happens in an isolated worktree. Nothing touches the user's working directory until they approve.
-
-## File Map
-
-| File | Purpose |
-|------|---------|
+| File/Dir | Purpose |
+|---|---|
 | `SKILL.md` | Factory Manager orchestrator prompt (the brain) |
-| `catalog.yml` | Skill metadata for Copilot CLI registration |
-| `config.yml` | Tunable settings (models, thresholds, checkpoints) |
-| `agents/*.md` | Specialist agent prompts (product, arch, qa, eng) |
-| `templates/*.md` | Structured output templates for agent artifacts |
-| `protocols/*.md` | Reusable protocol definitions |
+| `agents/*.md` | Specialist agent prompts |
+| `templates/*.md` | Artifact output formats |
+| `protocols/*.md` | Protocol invariants (sealed envelope, checkpoints) |
+| `config.yml` | Tunables (models, thresholds, timeouts) |
+| `catalog.yml` | Skill metadata + file references |
+| `docs/TESTING.md` | Playbooks + QA checklist |
+| `docs/ADR.md` | Why these decisions |
 
-## Rules
+## Non-negotiables
 
-1. **Never modify sealed test isolation** — the sealed directory must remain invisible to building agents
-2. **Agents are stateless** — each `task()` call gets a clean context. Pass EXACTLY what the agent needs via the handoff manifest.
-3. **State must survive crashes** — every phase transition writes to `state.json`
-4. **Express mode must work** — quick tasks should complete in ~60 seconds with one checkpoint
-5. **Keep agent prompts under 200 lines** — focused, not bloated
+1. **Sealed envelope is sacred.** The Lead Engineer must never see sealed tests; the QA Sealed agent must never see code.
+2. **Config is the source of truth.** Never hardcode model names or tunables inside prompts.
+3. **Agent prompts <= 200 lines.** If a prompt grows, split responsibilities instead.
+4. **Just a skill.** Do not add runtime code, package managers, telemetry, dashboards, or plugin systems.
+5. **Worktree isolation.** All build work happens under `.factory/` until delivery approval.
+
+## Prohibited actions
+
+- Exposing sealed test contents to the user before Phase 4.
+- Passing sealed test source code into any builder/hardening prompt.
+- Editing user files outside the factory worktree.
+
+## PR requirements
+
+Before opening a PR:
+
+- Run Playbook 1 (Full) and Playbook 2 (Express) from `docs/TESTING.md`.
+- Ensure `catalog.yml` references are valid.
+- Ensure YAML parses (`config.yml`, `catalog.yml`).
+- Ensure CI validate workflow passes.

@@ -1,8 +1,8 @@
 # Dark Factory Configuration
-# Tunables for the factory pipeline
+# Tunables for the factory pipeline (single source of truth)
 
 factory:
-  # Default pipeline mode: "full" (6 phases) or "express" (3 phases)
+  # Default pipeline mode: "full" (6 phases) or "express" (short goals)
   default_mode: full
 
   # Maximum hardening cycles before escalating to user
@@ -10,6 +10,22 @@ factory:
 
   # Auto-detect express mode for short prompts (< N words)
   express_threshold_words: 15
+
+  # Agent execution timeout (seconds)
+  agent_timeout_sec: 300
+
+  # Retry policy (max retries per agent dispatch)
+  max_retries: 1
+
+  # Logging verbosity (debug, info, warn, error)
+  verbosity: info
+
+safety:
+  # Max lines for PRD generation (guardrail against context overflow)
+  max_prd_lines: 180
+
+  # Max lines for any artifact passed between agents (ARCH, GAP reports, etc.)
+  max_artifact_lines: 600
 
 isolation:
   # Workspace root (relative to cwd)

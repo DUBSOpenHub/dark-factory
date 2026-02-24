@@ -44,6 +44,8 @@ Every checkpoint offers exactly 4 options:
 |------------|-------------|-------------------|
 | 1 | Phase 6 (Delivery) | Code, test results, merge decision |
 
+> **Note:** Phase 5 (Hardening) still runs when gap score > 0%, even in express mode. Express is "faster" not "less safe" — it skips specification phases, not quality gates.
+
 ## State Persistence
 
 After each checkpoint decision, write to `state.json`:
