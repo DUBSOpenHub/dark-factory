@@ -72,3 +72,66 @@ outcome_evaluation:
 
   # Archive artifacts for post-ship evaluation
   archive_dir: .factory/archive
+
+cost_tracking:
+  # Enable per-phase cost estimation in delivery reports
+  enabled: true
+
+  # Estimated tokens per agent role (calibrate from actual runs)
+  estimated_tokens:
+    product_mgr:  { input: 4000, output: 3000 }
+    architect:    { input: 5000, output: 4000 }
+    qa_sealed:    { input: 3000, output: 3000 }
+    lead_eng:     { input: 8000, output: 10000 }
+    qa_validator: { input: 6000, output: 2000 }
+    outcome_evaluator: { input: 5000, output: 3000 }
+
+diversity:
+  # Multi-model sealed testing — run QA Sealed on a secondary model and merge suites
+  qa_sealed_secondary: null  # Set to a model name to enable (e.g., gpt-5.1-codex)
+
+  # Merge strategy: "union" (keep all tests) or "deduplicate" (remove near-duplicates)
+  merge_strategy: union
+
+fitness:
+  # Track run quality over time to evolve model routing
+  enabled: true
+
+  # Minimum runs before fitness scores are considered reliable
+  min_runs_for_confidence: 5
+
+  # Auto-suggest model changes when fitness delta exceeds this threshold
+  suggestion_threshold: 0.15
+
+express:
+  # Generate a micro-PRD (5-line structured spec) before building in express mode
+  micro_prd: true
+
+  # Max lines for micro-PRD (keep it tight)
+  micro_prd_max_lines: 15
+
+auto_evolve:
+  # Autonomous prompt evolution — the factory improves its own agent prompts
+  enabled: true
+
+  # Trigger evolution cycle every N completed runs
+  every_n_runs: 5
+
+  # Minimum gap score improvement (%) required to accept a mutation
+  min_improvement_pct: 3.0
+
+  # Number of prompt variants to generate per evolution cycle
+  variants: 3
+
+  # Test goal for evolution benchmarking (express mode build)
+  # Use a representative goal that exercises core factory capabilities
+  test_goal: "build a CLI tool that validates JSON files against a schema"
+
+  # Safety: require human approval before applying prompt mutations
+  require_approval: true
+
+  # Maximum mutations per agent per cycle (prevents runaway changes)
+  max_mutations_per_agent: 1
+
+  # Rollback: keep N previous prompt versions for recovery
+  keep_versions: 3
