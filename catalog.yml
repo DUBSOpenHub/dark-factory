@@ -9,7 +9,7 @@ description: >
 emoji: "🏭"
 codename: Lights Out
 category: specialist
-version: "0.3.0"
+version: "0.1.0"
 tags: [factory, orchestrator, multi-agent, sealed-testing, dark-factory, pipeline, copilot-cli]
 platforms: [copilot-cli]
 input_format: free-text

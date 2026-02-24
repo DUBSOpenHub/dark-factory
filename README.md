@@ -59,15 +59,11 @@ Sealed testing creates a blindfolded QA loop: the QA Sealed agent writes accepta
 | Command | Purpose |
 |---------|---------|
 | `dark factory — <goal>` | Full pipeline (Phases 0–6) with checkpoints at every phase. |
-| `dark factory express — <goal>` | Generates micro-PRD, seals tests, builds, single checkpoint at delivery. |
+| `dark factory express — <goal>` | Skips PRD/ARCH, still seals tests from the raw goal, single checkpoint at delivery. |
 | `dark factory resume` | Reloads the most recent `state.json` and continues from the saved phase. |
 | `dark factory status` | Prints `state.json` plus any pending outcome evaluations without mutating state. |
 | `dark factory evaluate <run-id>` | Launches Phase 7 Outcome Evaluator for an archived run. |
 | `dark factory premium — <goal>` | Routes all agents through `config.models.premium_model` for one run. |
-| `dark factory fitness` | Shows fitness scores across runs, suggests model routing improvements. |
-| `dark factory evolve` | Surfaces best-performing prompt versions and suggests improvements. |
-| `dark factory auto-evolve` | Manually triggers an autonomous prompt evolution cycle. |
-| `dark factory rollback <agent>` | Restores an agent prompt to its previous version from backup. |
 
 ## Installation & Setup
 ### Prerequisites
@@ -131,43 +127,6 @@ Dark Factory reads `config.yml` on every run and never hardcodes tunables.
 |-----|---------|---------|
 | `auto_evaluate_after_days` | `0` | Auto Phase 7 schedule (0 disables automation). |
 | `archive_dir` | `.factory/archive` | Storage for PRD/ARCH/GAP consumed by Phase 7. |
-
-### `cost_tracking`
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `enabled` | `true` | Enable per-phase cost estimation in delivery reports. |
-| `estimated_tokens` | (per role) | Estimated input/output tokens per agent role for cost calculation. |
-
-### `diversity`
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `qa_sealed_secondary` | `null` | Secondary model for QA Sealed (enables multi-model sealed testing). |
-| `merge_strategy` | `union` | How to merge test suites: `union` (keep all) or `deduplicate`. |
-
-### `fitness`
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `enabled` | `true` | Track run quality over time to evolve model routing. |
-| `min_runs_for_confidence` | `5` | Minimum runs before fitness comparisons are surfaced. |
-| `suggestion_threshold` | `0.15` | Fitness delta required to suggest a model routing change. |
-
-### `express`
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `micro_prd` | `true` | Generate a structured micro-PRD in express mode. |
-| `micro_prd_max_lines` | `15` | Maximum lines for the micro-PRD. |
-
-### `auto_evolve`
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `enabled` | `true` | Enable autonomous prompt evolution. |
-| `every_n_runs` | `5` | Trigger evolution cycle every N completed runs. |
-| `min_improvement_pct` | `3.0` | Minimum gap score improvement (%) to accept a mutation. |
-| `variants` | `3` | Number of prompt variants to generate per cycle. |
-| `test_goal` | (see config) | Representative goal used for evolution benchmarking. |
-| `require_approval` | `true` | Ask human before applying mutations. |
-| `max_mutations_per_agent` | `1` | Max agents evolved per cycle. |
-| `keep_versions` | `3` | Number of prompt backups to retain for rollback. |
 
 ## Usage Examples
 ### 1. Full build (“Lights Out”)
