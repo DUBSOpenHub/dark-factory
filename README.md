@@ -7,7 +7,7 @@
 ![Language: Markdown](https://img.shields.io/badge/written%20in-Markdown-000000.svg)
 [![Gap Score Spec](https://img.shields.io/badge/Gap%20Score-Spec%20v1.0.0%20%7C%20Level%203-brightgreen.svg)](https://github.com/DUBSOpenHub/gap-score-spec)
 
-Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. It isolates the work in a disposable git worktree, orchestrates six specialist agents, and measures quality with sealed-envelope testing — builders never see the hidden acceptance suite that judges them.
+Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. It isolates the work in a disposable git worktree, orchestrates six specialist agents, and measures quality with [sealed-envelope testing](https://github.com/DUBSOpenHub/gap-score-spec) — builders never see the hidden acceptance suite that judges them.
 
 ## Contents
 1. [Why Sealed-Envelope Testing?](#why-sealed-envelope-testing)
@@ -28,7 +28,7 @@ Sealed testing creates a blindfolded QA loop: the QA Sealed agent writes accepta
 
 **Benefits**
 - **Prevents overfitting.** Builders can’t “teach to the test” because they never see the sealed suite.
-- **Quantifies quality.** Gap scores (sealed failures ÷ sealed total) expose blind spots numerically.
+- **Quantifies quality.** [Gap scores](https://github.com/DUBSOpenHub/gap-score-spec) (sealed failures ÷ sealed total) expose blind spots numerically.
 - **Automates escalation.** Hardening cycles fire automatically, but the engineer still sees only failure messages.
 - **Retains speed.** Express mode still produces sealed tests immediately after setup, so even fast fixes retain coverage.
 
