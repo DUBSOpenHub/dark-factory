@@ -2,6 +2,7 @@
 
 ![Validate](https://github.com/DUBSOpenHub/dark-factory/actions/workflows/validate.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+[![Security Policy](https://img.shields.io/badge/Security-Policy-brightgreen?logo=github)](SECURITY.md)
 ![Version: v0.1.0](https://img.shields.io/badge/version-v0.1.0-5E5E5E.svg)
 ![Platform: Copilot CLI](https://img.shields.io/badge/platform-Copilot%20CLI-232F3E.svg)
 ![Language: Markdown](https://img.shields.io/badge/written%20in-Markdown-000000.svg)
@@ -248,5 +249,18 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow (branch naming, testing playbooks, PR template). Before opening a PR, run `.github/workflows/validate.yml` locally or via GitHub Actions.
 
+**Quick ways to help:**
+- 🐛 [Report a bug](https://github.com/DUBSOpenHub/dark-factory/issues/new?template=bug_report.md)
+- 💡 [Suggest a feature](https://github.com/DUBSOpenHub/dark-factory/issues/new?template=feature_request.md)
+- 🏭 [Share a build](https://github.com/DUBSOpenHub/dark-factory/discussions/new?category=show-and-tell)
+
 ## License
 Released under the [MIT License](LICENSE) © 2026 DUBSOpenHub.
+
+---
+
+## 🐙 Built with Love
+
+Created with 💜 by [DUBSOpenHub](https://github.com/DUBSOpenHub) to help more people discover the joy of GitHub Copilot CLI.
+
+**Let's build!** 🚀✨
