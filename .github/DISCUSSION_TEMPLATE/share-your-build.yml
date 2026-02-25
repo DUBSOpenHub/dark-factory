@@ -1,0 +1,56 @@
+title: "🏭 Share Your Build"
+labels: ["showcase"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your Dark Factory build! 🎉
+        Fill in the details below so the community can learn from your run.
+
+  - type: input
+    id: goal
+    attributes:
+      label: "Goal"
+      description: "What was the build goal you gave Dark Factory?"
+      placeholder: "e.g., Build a REST API for a todo app"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: "Mode"
+      description: "Which mode did you use?"
+      options:
+        - Full Pipeline
+        - Express
+        - Premium
+    validations:
+      required: true
+
+  - type: input
+    id: shadow_score
+    attributes:
+      label: "Shadow Score"
+      description: "What was the final shadow score?"
+      placeholder: "e.g., 0%, 5%, 15%"
+    validations:
+      required: false
+
+  - type: textarea
+    id: highlights
+    attributes:
+      label: "Highlights"
+      description: "What went well? Any surprises?"
+      placeholder: "The sealed tests caught an edge case I wouldn't have thought of..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: factory_report
+    attributes:
+      label: "Factory Report (optional)"
+      description: "Paste your FACTORY-REPORT.md or SHADOW-REPORT.md here"
+      render: markdown
+    validations:
+      required: false
