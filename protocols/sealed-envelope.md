@@ -1,6 +1,6 @@
 # Sealed-Envelope Testing Protocol
 
-> **Canonical specification:** [Gap Score Spec v1.0.0](https://github.com/DUBSOpenHub/gap-score-spec/blob/main/SPEC.md)
+> **Canonical specification:** [Shadow Score Spec v1.0.0](https://github.com/DUBSOpenHub/shadow-score-spec/blob/main/SPEC.md)
 > Dark Factory is the reference Level 3 implementation.
 
 ## Purpose
@@ -38,15 +38,15 @@ The QA Validator agent:
 1. Re-verifies the sealed hash against `state.json` before use (abort on mismatch)
 2. Copies sealed tests from `.factory/sealed/<run-id>/` into the worktree
 3. Runs BOTH test suites (sealed + open)
-4. Computes Gap Score: `sealed_failures / sealed_total × 100`
-5. Produces a gap analysis report (see `templates/gap-report-template.md`)
+4. Computes Shadow Score: `sealed_failures / sealed_total × 100`
+5. Produces a shadow analysis report (see `templates/shadow-report-template.md`)
 6. Deletes sealed test copies from the worktree immediately after validation completes
 
 ### Step 4: Hardening (Phase 5, if needed)
 
-Hardening runs in both Full and Express modes when Gap Score > 0%.
+Hardening runs in both Full and Express modes when Shadow Score > 0%.
 
-If Gap Score > 0%:
+If Shadow Score > 0%:
 1. Engineer receives ONLY failure messages: `"test_edge_null_input FAILED: expected 400, got 500"`
 2. Engineer does NOT see the test code
 3. Engineer fixes the root cause in the implementation
@@ -54,7 +54,7 @@ If Gap Score > 0%:
 5. Repeat up to `max_hardening_cycles` (default: 3)
 6. If still failing after max cycles → escalate to user
 
-## Gap Score Interpretation
+## Shadow Score Interpretation
 
 | Score | Level | Meaning |
 |-------|-------|---------|
