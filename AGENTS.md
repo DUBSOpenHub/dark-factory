@@ -14,7 +14,7 @@ SKILL.md (Factory Manager / Orchestrator)
   ├── agents/architect.md         → Phase 2b: writes ARCH.md
   ├── agents/qa-sealed.md         → Phase 2a: writes sealed tests (parallel with arch)
   ├── agents/lead-eng.md          → Phase 3: writes code + open tests
-  ├── agents/qa-validator.md      → Phase 4: runs sealed tests, gap analysis
+  ├── agents/qa-validator.md      → Phase 4: runs sealed tests, shadow analysis
   └── agents/outcome-evaluator.md → Phase 7: evaluates post-ship outcomes
 ```
 
