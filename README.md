@@ -5,7 +5,7 @@
 ![Version: v0.1.0](https://img.shields.io/badge/version-v0.1.0-5E5E5E.svg)
 ![Platform: Copilot CLI](https://img.shields.io/badge/platform-Copilot%20CLI-232F3E.svg)
 ![Language: Markdown](https://img.shields.io/badge/written%20in-Markdown-000000.svg)
-[![Shadow Score Spec](https://img.shields.io/badge/Gap%20Score-Spec%20v1.0.0%20%7C%20Level%203-brightgreen.svg)](https://github.com/DUBSOpenHub/shadow-score-spec)
+[![Shadow Score Spec](https://img.shields.io/badge/Shadow%20Score-Spec%20v1.0.0%20%7C%20Level%203-brightgreen.svg)](https://github.com/DUBSOpenHub/shadow-score-spec)
 
 Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. It isolates the work in a disposable git worktree, orchestrates six specialist agents, and measures quality with [sealed-envelope testing](https://github.com/DUBSOpenHub/shadow-score-spec) — builders never see the hidden acceptance suite that judges them.
 
@@ -28,7 +28,7 @@ Sealed testing creates a blindfolded QA loop: the QA Sealed agent writes accepta
 
 **Benefits**
 - **Prevents overfitting.** Builders can’t “teach to the test” because they never see the sealed suite.
-- **Quantifies quality.** [Gap scores](https://github.com/DUBSOpenHub/shadow-score-spec) (sealed failures ÷ sealed total) expose blind spots numerically.
+- **Quantifies quality.** [Shadow scores](https://github.com/DUBSOpenHub/shadow-score-spec) (sealed failures ÷ sealed total) expose blind spots numerically.
 - **Automates escalation.** Hardening cycles fire automatically, but the engineer still sees only failure messages.
 - **Retains speed.** Express mode still produces sealed tests immediately after setup, so even fast fixes retain coverage.
 
@@ -37,7 +37,7 @@ Sealed testing creates a blindfolded QA loop: the QA Sealed agent writes accepta
 |----------|------------------|------------------------|-----------------|
 | Classic TDD | Entire suite | During implementation | Spec drift if requirements change mid-build |
 | Manual QA | Human docs | Post-build | Slow feedback, inconsistent coverage |
-| **Dark Factory** | Only failure messages | Before Phase 3, hidden until validation | Gap score proves whether the spec was truly covered |
+| **Dark Factory** | Only failure messages | Before Phase 3, hidden until validation | Shadow score proves whether the spec was truly covered |
 
 ## Pipeline Overview
 ```
@@ -95,7 +95,7 @@ Dark Factory reads `config.yml` on every run and never hardcodes tunables.
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `max_prd_lines` | `180` | Caps PRD.md to stay within downstream context windows. |
-| `max_artifact_lines` | `600` | Cap for ARCH, GAP reports, and other artifacts. |
+| `max_artifact_lines` | `600` | Cap for ARCH, SHADOW reports, and other artifacts. |
 
 ### `isolation`
 | Key | Default | Purpose |
@@ -126,7 +126,7 @@ Dark Factory reads `config.yml` on every run and never hardcodes tunables.
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `auto_evaluate_after_days` | `0` | Auto Phase 7 schedule (0 disables automation). |
-| `archive_dir` | `.factory/archive` | Storage for PRD/ARCH/GAP consumed by Phase 7. |
+| `archive_dir` | `.factory/archive` | Storage for PRD/ARCH/SHADOW consumed by Phase 7. |
 
 ## Usage Examples
 ### 1. Full build (“Lights Out”)
@@ -137,7 +137,7 @@ Expected output snippet:
 ```
 🏭 Run: run-20260401-1215 | Mode: FULL
 🏭 Phase 2 🔒 SHA-256 (sealed tests): sha256:d3b1...
-🏭 GAP_SCORE: 11.1% (2 sealed failures)
+🏭 SHADOW_SCORE: 11.1% (2 sealed failures)
 🏭 Delivery report ready — approve / reject
 ```
 Tips: provide scope (“CLI”, “API”) so the PRD agent knows what to model; use checkpoints to add clarifications without restarting.
@@ -171,7 +171,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 - **Agent Team:** Product Manager → Architect & QA Sealed (parallel) → Lead Engineer → QA Validator → Outcome Evaluator. Agents are stateless and only receive what the orchestrator passes via the handoff manifest.
 - **Isolation:** Every run lives in `.factory/runs/<run-id>` plus a hidden `.factory/sealed/<run-id>` folder. Aborting deletes both the worktree and the branch immediately.
 - **State & Telemetry:** `state.json` persists mode, phase, artifacts, sealed hash, checkpoint decisions, and `evaluation_due_at`. SQLite tables (`factory_runs`, `phase_results`) enable reporting and future analytics.
-- **Templates & Protocols:** Agents follow the markdown templates in `templates/` and the governance rules in `protocols/`, ensuring consistent artifacts (PRD, ARCH, GAP report, delivery summary, outcome report).
+- **Templates & Protocols:** Agents follow the markdown templates in `templates/` and the governance rules in `protocols/`, ensuring consistent artifacts (PRD, ARCH, SHADOW report, delivery summary, outcome report).
 
 ## Factory Operating Manual
 ### Sealed Test Lifecycle
@@ -179,7 +179,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 2. **Hashing:** The Factory Manager records a SHA-256 hash of every sealed file and stores it in `state.json`.
 3. **Vault Storage:** Files live under `.factory/sealed/<run-id>` and are never copied into the worktree until validation.
 4. **Execution:** During Phase 4 the sealed suite is temporarily copied into the worktree, executed, then deleted immediately after QA Validator reports the shadow score.
-5. **Archive:** On delivery approval, the sealed files plus PRD/ARCH/GAP reports are archived under `.factory/archive/<run-id>` for future outcome evaluations.
+5. **Archive:** On delivery approval, the sealed files plus PRD/ARCH/SHADOW reports are archived under `.factory/archive/<run-id>` for future outcome evaluations.
 
 ### State File Anatomy
 | Key | Meaning | Example |
@@ -193,7 +193,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 > **Checkpoint entry format** (see [`protocols/checkpoint-gate.md`](protocols/checkpoint-gate.md)): each entry is `{ "status": "approved", "feedback": null, "decided_at": "2026-02-23T21:35:00Z" }`. Status may be `approved`, `modified`, or `aborted`.
 | `skip_all` | Whether checkpoints beyond the current one auto-approve | `false` |
 | `evaluation_due_at` | Timestamp when Phase 7 should auto-trigger | `2026-04-08T13:00:00Z` |
-| `artifacts` | Map of produced files (prd, arch, gap_report) | `{ "prd": "PRD.md", ... }` |
+| `artifacts` | Map of produced files (prd, arch, shadow_report) | `{ "prd": "PRD.md", ... }` |
 
 ### Quality Gates
 - **Checkpoint approvals**: Human-signed at every `gates` entry; delivery checkpoint cannot be skipped.
@@ -239,7 +239,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 |---------|--------------|-----|
 | `fatal: worktree add` fails | Dirty git state/untracked files | Commit/stash changes, ensure `.factory/` is gitignored, rerun. |
 | QA Sealed crashes citing “unknown stack” | Goal/PRD lacked tech hints | Add a “Technical Constraints” section or mention the runtime in the goal; rerun Phase 2. |
-| GAP score stays >0 after 3 cycles | Hardening limit reached | Choose **continue-hardening** to reset the counter or **deliver-as-is** to surface outstanding failures. |
+| SHADOW score stays >0 after 3 cycles | Hardening limit reached | Choose **continue-hardening** to reset the counter or **deliver-as-is** to surface outstanding failures. |
 | `state.json` missing for resume | Worktree cleaned manually | Use `dark factory status` to list available runs; if none, restart from Phase 0. |
 | Markdown lint fails in CI | Missing newline at EOF or long lines | Run `markdownlint '**/*.md' --ignore node_modules` locally. |
 | YAML validation job fails | Syntax error in `config.yml` or `catalog.yml` | Run `python -c "import yaml; yaml.safe_load(open('config.yml'))"` to pinpoint the issue. |
