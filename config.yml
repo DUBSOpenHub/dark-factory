@@ -24,7 +24,7 @@ safety:
   # Max lines for PRD generation (guardrail against context overflow)
   max_prd_lines: 180
 
-  # Max lines for any artifact passed between agents (ARCH, GAP reports, etc.)
+  # Max lines for any artifact passed between agents (ARCH, SHADOW reports, etc.)
   max_artifact_lines: 600
 
 isolation:
@@ -60,7 +60,7 @@ checkpoints:
     - after_prd        # Phase 1 → approve spec
     - after_arch       # Phase 2 → approve architecture
     - after_build      # Phase 3 → review code
-    - after_validation # Phase 4 → review gap analysis
+    - after_validation # Phase 4 → review shadow analysis
     - delivery         # Phase 6 → approve or reject merge
 
   # Allow "skip-all" to go fully dark
