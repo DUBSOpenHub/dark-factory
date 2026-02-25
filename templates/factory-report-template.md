@@ -16,7 +16,7 @@
 ## Quality Assessment
 
 ### Sealed-Envelope Results
-- **Gap Score**: {percentage}% ({interpretation})
+- **Shadow Score**: {percentage}% ({interpretation})
 - **Sealed tests**: {passed}/{total} passed
 - **Open tests**: {passed}/{total} passed
 - **Hardening cycles**: {N} (max 3)
@@ -62,7 +62,7 @@ WORKED EXAMPLE:
 ## Quality Assessment
 
 ### Sealed-Envelope Results
-- **Gap Score**: 0% (Perfect)
+- **Shadow Score**: 0% (Perfect)
 - **Sealed tests**: 6/6 passed
 - **Open tests**: 6/6 passed
 - **Hardening cycles**: 0 (max 3)
