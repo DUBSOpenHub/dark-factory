@@ -60,7 +60,7 @@ All agents dispatched via `task(agent_type="general-purpose", model="<model-from
 
 **FULL MODE** (default): 6 phases with checkpoints. For new features, projects, complex builds.
 
-**EXPRESS MODE**: Triggered by "express" keyword OR goal length < `<config.factory.express_threshold_words>`. Phases: 0 → 3 → 4 → 5 → 6 (Phase 5 runs only when Gap Score > 0). One checkpoint at delivery. Sealed tests are still generated, but from raw goal text.
+**EXPRESS MODE**: Triggered by "express" keyword OR goal length < `<config.factory.express_threshold_words>`. Phases: 0 → 3 → 4 → 5 → 6 (Phase 5 runs only when Shadow Score > 0). One checkpoint at delivery. Sealed tests are still generated, but from raw goal text.
 
 ---
 
@@ -94,7 +94,7 @@ _Automatic. No checkpoint._
 5. Create sealed dir: `mkdir -p <config.isolation.sealed_dir>/<run-id>`
 6. Initialize SQL:
 ```sql
-CREATE TABLE IF NOT EXISTS factory_runs (run_id TEXT PRIMARY KEY, goal TEXT, mode TEXT, started_at TEXT, completed_at TEXT, gap_score REAL, status TEXT DEFAULT 'running');
+CREATE TABLE IF NOT EXISTS factory_runs (run_id TEXT PRIMARY KEY, goal TEXT, mode TEXT, started_at TEXT, completed_at TEXT, shadow_score REAL, status TEXT DEFAULT 'running');
 CREATE TABLE IF NOT EXISTS phase_results (id INTEGER PRIMARY KEY AUTOINCREMENT, run_id TEXT, phase INTEGER, status TEXT, duration_sec REAL, model_used TEXT, artifacts TEXT);
 INSERT INTO factory_runs (run_id, goal, mode, started_at, status) VALUES ('<run-id>', '<goal>', '<mode>', datetime('now'), 'running');
 ```
@@ -186,13 +186,13 @@ task(agent_type="general-purpose", model="<config.models.qa_validator>", descrip
 You are the QA Validator for the Dark Factory.
 ## Mission: Run ALL test suites — engineer's open tests AND sealed acceptance tests.
 ## Working Directory: <worktree_path>
-## Output: Write GAP-REPORT.md — total tests run/passed/failed. Per failure: test name, expected, actual. Gap score = (failed/total)*100. Last line of response: 'GAP_SCORE: <N>%'
+## Output: Write SHADOW-REPORT.md — total tests run/passed/failed. Per failure: test name, expected, actual. Gap score = (failed/total)*100. Last line of response: 'GAP_SCORE: <N>%'
 ## Rules: Use appropriate test runner. Do NOT modify code or tests. Facts only.
 ")
 ```
-4. Parse gap score. Record in SQL. Update state (`current_phase: 4`).
+4. Parse shadow score. Record in SQL. Update state (`current_phase: 4`).
 5. Delete sealed test copies from the worktree so builders cannot read them later.
-6. If gap score = 0%: skip Phase 5, go to Phase 6.
+6. If shadow score = 0%: skip Phase 5, go to Phase 6.
 
 Checkpoint: `🏭 Phase 4 complete — Sealed envelope opened. Gap score: <X>%`
 → `ask_user`: **approve** / **modify** / **skip-all** / **abort**
@@ -202,7 +202,7 @@ _No checkpoint. Loops internally._
 
 Each cycle:
 
-1. Extract from GAP-REPORT.md: test name + expected + actual ONLY. **No test source code.**
+1. Extract from SHADOW-REPORT.md: test name + expected + actual ONLY. **No test source code.**
 2. Dispatch **Lead Engineer**:
 ```
 task(agent_type="general-purpose", model="<config.models.lead_eng>", description="Hardening cycle N", prompt="
@@ -227,7 +227,7 @@ You are the Lead Engineer — Hardening Mode.
 _Final checkpoint. ALWAYS shown, even in skip-all mode._
 
 1. Diff summary: `cd <worktree_path> && git diff --stat`
-2. Update SQL: `UPDATE factory_runs SET completed_at=datetime('now'), gap_score=<score>, status='delivered' WHERE run_id='<run-id>'`
+2. Update SQL: `UPDATE factory_runs SET completed_at=datetime('now'), shadow_score=<score>, status='delivered' WHERE run_id='<run-id>'`
 3. Present delivery report.
 
 → `ask_user`: **approve** / **reject**
@@ -242,7 +242,7 @@ On **approve** (temp dir): copy files to original working directory.
 
 On **approve** (both): Archive artifacts for post-ship evaluation:
 
-`mkdir -p <config.outcome_evaluation.archive_dir>/<run-id> && cp PRD.md ARCH.md GAP-REPORT.md <config.outcome_evaluation.archive_dir>/<run-id>/`
+`mkdir -p <config.outcome_evaluation.archive_dir>/<run-id> && cp PRD.md ARCH.md SHADOW-REPORT.md <config.outcome_evaluation.archive_dir>/<run-id>/`
 
 5. On **reject**: `git worktree remove .factory/runs/<run-id> --force && git branch -D <config.isolation.branch_prefix><run-id>`
 6. Clean up `.factory/runs/`. Print: `🏭 Factory floor cleared. Run <run-id> complete.`
@@ -251,13 +251,13 @@ On **approve** (both): Archive artifacts for post-ship evaluation:
 _Triggered by: `dark factory evaluate <run-id>` or automatically after N days._
 
 1. Look up run in SQL: `SELECT * FROM factory_runs WHERE run_id='<run-id>'`
-2. Read original PRD.md, GAP-REPORT.md from `<config.outcome_evaluation.archive_dir>/<run-id>/`
+2. Read original PRD.md, SHADOW-REPORT.md from `<config.outcome_evaluation.archive_dir>/<run-id>/`
 3. Dispatch **Outcome Evaluator**:
 ```
 task(agent_type="general-purpose", model="<config.models.outcome_evaluator>", description="Outcome evaluation", prompt="
 You are the Outcome Evaluator for the Dark Factory.
 ## Mission: Evaluate whether the delivered build met its PRD success criteria and KPIs.
-## Input: <PRD.md content> + <GAP-REPORT.md content>
+## Input: <PRD.md content> + <SHADOW-REPORT.md content>
 ## Working Directory: <current project directory>
 ## Output: Write OUTCOME-REPORT.md — score each success criterion, measure KPIs, compute outcome score.
 ## Rules: Run the code. Re-run tests. Evidence-based only. No opinions.
@@ -275,7 +275,7 @@ Express mode is optimized for quick tasks. It still enforces sealed-envelope tes
 - Start QA Sealed in the background using **raw goal text** (sealed dir)
 - Phase 3 (build from raw goal, no PRD/ARCH)
 - Phase 4 (validate by running both suites)
-- Phase 5 (hardening loop) when Gap Score > 0%, otherwise skip directly
+- Phase 5 (hardening loop) when Shadow Score > 0%, otherwise skip directly
 - Phase 6 (deliver) with one checkpoint
 
 ---
@@ -294,7 +294,7 @@ Write `state.json` on EVERY phase transition (path: `config.isolation.state_file
   "worktree_path": ".factory/runs/run-20260223-2130",
   "sealed_path": ".factory/sealed/run-20260223-2130",
   "sealed_hash": "sha256:a1b2c3...",
-  "artifacts": { "prd": "PRD.md", "arch": "ARCH.md", "gap_report": "GAP-REPORT.md" },
+  "artifacts": { "prd": "PRD.md", "arch": "ARCH.md", "gap_report": "SHADOW-REPORT.md" },
   "checkpoints": {
     "1": { "status": "approved", "feedback": null, "decided_at": "2026-02-23T21:35:00Z" },
     "2": { "status": "approved", "feedback": null, "decided_at": "2026-02-23T21:40:00Z" }
