@@ -33,7 +33,7 @@ Example snippets:
 ```
 
 ```text
-🏭 Phase 4 complete — Sealed envelope opened. Gap score: 0%
+🏭 Phase 4 complete — Sealed envelope opened. Shadow score: 0%
 ```
 
 ---
@@ -51,7 +51,7 @@ Example snippets:
 | 5 | Approve | Phase 3 — engineer implements code + open tests |
 | 6 | *(Phase 3 completes)* | Code files created, Checkpoint 3 |
 | 7 | Approve | Phase 4 — sealed tests copied, both suites run |
-| 8 | *(Phase 4 completes)* | GAP-REPORT.md, gap score, Checkpoint 4 |
+| 8 | *(Phase 4 completes)* | SHADOW-REPORT.md, shadow score, Checkpoint 4 |
 | 9 | Approve | Phase 5 if gaps, then Phase 6 delivery report |
 | 10 | Approve/Reject | Merge or discard worktree |
 
@@ -109,7 +109,7 @@ Example snippets:
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | Complete Phase 4 with gap score > 0% | Hardening begins |
+| 1 | Complete Phase 4 with shadow score > 0% | Hardening begins |
 | 2 | *(cycle 1)* | Engineer gets failure messages, fixes code |
 | 3 | *(re-validate)* | If still failing, cycle 2 |
 | 4 | *(after max cycles)* | Escalation: continue-hardening / deliver-as-is / abort |
@@ -127,7 +127,7 @@ Before submitting changes, verify:
 - [ ] 🔒 SHA-256 hash of sealed directory displayed at Phase 2
 - [ ] 👩‍💻 Engineer never accesses `.factory/sealed/` during build
 - [ ] ✅ Both test suites run in Phase 4
-- [ ] 📊 GAP-REPORT.md produced with gap score
+- [ ] 📊 SHADOW-REPORT.md produced with shadow score
 - [ ] 🔧 Hardening sends failure messages only (no test code)
 - [ ] 🔧 Hardening caps at configured max cycles, then escalates
 - [ ] 📋 Checkpoints use `ask_user` with exactly 4 choices
