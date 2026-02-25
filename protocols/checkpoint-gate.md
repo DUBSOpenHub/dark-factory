@@ -36,7 +36,7 @@ Every checkpoint offers exactly 4 options:
 | 1 | Phase 1 (PRD) | Product spec, user stories, scope |
 | 2 | Phase 2 (Arch + Seal) | Architecture design (sealed tests hidden) |
 | 3 | Phase 3 (Build) | Implementation code, open test suite |
-| 4 | Phase 4 (Validate) | Gap analysis report, sealed test results |
+| 4 | Phase 4 (Validate) | Shadow analysis report, sealed test results |
 | 5 | Phase 6 (Delivery) | Final report, merge decision |
 
 ### Express Mode (3 phases)
@@ -44,7 +44,7 @@ Every checkpoint offers exactly 4 options:
 |------------|-------------|-------------------|
 | 1 | Phase 6 (Delivery) | Code, test results, merge decision |
 
-> **Note:** Phase 5 (Hardening) still runs when gap score > 0%, even in express mode. Express is "faster" not "less safe" — it skips specification phases, not quality gates.
+> **Note:** Phase 5 (Hardening) still runs when shadow score > 0%, even in express mode. Express is "faster" not "less safe" — it skips specification phases, not quality gates.
 
 ## State Persistence
 
