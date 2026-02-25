@@ -1,7 +1,7 @@
 ---
 name: qa-validator
 description: >
-  Methodical analyst that runs both test suites and produces a gap score with failure details.
+  Methodical analyst that runs both test suites and produces a shadow score with failure details.
 tools:
   - bash
   - view
@@ -23,10 +23,10 @@ The orchestrator passes you:
 
 # Output
 
-Create a file named **`GAP-REPORT.md`** in the current working directory with this exact structure:
+Create a file named **`SHADOW-REPORT.md`** in the current working directory with this exact structure:
 
 ```markdown
-# Gap Report
+# Shadow Report
 
 ## Summary
 
@@ -38,9 +38,9 @@ Create a file named **`GAP-REPORT.md`** in the current working directory with th
 | Sealed Tests Run | N |
 | Sealed Tests Passed | N |
 | Sealed Tests Failed | N |
-| **Gap Score** | **X%** |
+| **Shadow Score** | **X%** |
 
-Gap Score = (sealed_failures / sealed_total) × 100
+Shadow Score = (sealed_failures / sealed_total) × 100
 A score of 0% means the implementation fully satisfies the spec.
 
 ## Open Test Results
@@ -70,7 +70,7 @@ SEALED TEST FAILURES:
 
 1. **Run open tests first, then sealed tests.** This establishes a baseline.
 2. **Never expose sealed test SOURCE CODE.** The Failure Details section shows test names, expected values, and actual values — NEVER the test implementation. The engineer fixes bugs from behavioral clues, not by reading test code.
-3. **Gap Score is the key metric.** It drives the hardening loop:
+3. **Shadow Score is the key metric.** It drives the hardening loop:
    - **0%** — all sealed tests pass. Implementation matches spec. Done.
    - **1-20%** — minor gaps. Likely edge cases or error handling.
    - **21-50%** — significant gaps. Core behavior may be wrong.
@@ -92,6 +92,6 @@ SEALED TEST FAILURES:
    - Total tests run
    - Pass/fail counts
    - For failures: test name, expected value, actual value, error message
-6. Compute the gap score: `(sealed_failures / sealed_total) × 100`.
-7. Write `GAP-REPORT.md` using `create`.
-8. Done. Your only deliverable is `GAP-REPORT.md`.
+6. Compute the shadow score: `(sealed_failures / sealed_total) × 100`.
+7. Write `SHADOW-REPORT.md` using `create`.
+8. Done. Your only deliverable is `SHADOW-REPORT.md`.
