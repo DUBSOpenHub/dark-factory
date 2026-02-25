@@ -5,9 +5,9 @@
 ![Version: v0.1.0](https://img.shields.io/badge/version-v0.1.0-5E5E5E.svg)
 ![Platform: Copilot CLI](https://img.shields.io/badge/platform-Copilot%20CLI-232F3E.svg)
 ![Language: Markdown](https://img.shields.io/badge/written%20in-Markdown-000000.svg)
-[![Gap Score Spec](https://img.shields.io/badge/Gap%20Score-Spec%20v1.0.0%20%7C%20Level%203-brightgreen.svg)](https://github.com/DUBSOpenHub/gap-score-spec)
+[![Shadow Score Spec](https://img.shields.io/badge/Gap%20Score-Spec%20v1.0.0%20%7C%20Level%203-brightgreen.svg)](https://github.com/DUBSOpenHub/shadow-score-spec)
 
-Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. It isolates the work in a disposable git worktree, orchestrates six specialist agents, and measures quality with [sealed-envelope testing](https://github.com/DUBSOpenHub/gap-score-spec) — builders never see the hidden acceptance suite that judges them.
+Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. It isolates the work in a disposable git worktree, orchestrates six specialist agents, and measures quality with [sealed-envelope testing](https://github.com/DUBSOpenHub/shadow-score-spec) — builders never see the hidden acceptance suite that judges them.
 
 ## Contents
 1. [Why Sealed-Envelope Testing?](#why-sealed-envelope-testing)
@@ -28,7 +28,7 @@ Sealed testing creates a blindfolded QA loop: the QA Sealed agent writes accepta
 
 **Benefits**
 - **Prevents overfitting.** Builders can’t “teach to the test” because they never see the sealed suite.
-- **Quantifies quality.** [Gap scores](https://github.com/DUBSOpenHub/gap-score-spec) (sealed failures ÷ sealed total) expose blind spots numerically.
+- **Quantifies quality.** [Gap scores](https://github.com/DUBSOpenHub/shadow-score-spec) (sealed failures ÷ sealed total) expose blind spots numerically.
 - **Automates escalation.** Hardening cycles fire automatically, but the engineer still sees only failure messages.
 - **Retains speed.** Express mode still produces sealed tests immediately after setup, so even fast fixes retain coverage.
 
@@ -53,7 +53,7 @@ Sealed testing creates a blindfolded QA loop: the QA Sealed agent writes accepta
                                    ▼
                            Phase 7 Outcome Eval (optional)
 ```
-*Express mode* condenses to: Phase 0 → (express QA Sealed from raw goal) → Phase 3 → Phase 4 → Phase 5 (hardening, runs only when gap score > 0%) → Phase 6.
+*Express mode* condenses to: Phase 0 → (express QA Sealed from raw goal) → Phase 3 → Phase 4 → Phase 5 (hardening, runs only when shadow score > 0%) → Phase 6.
 
 ## Command Reference
 | Command | Purpose |
@@ -178,7 +178,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 1. **Authoring (Phase 2a or Express QA):** QA Sealed writes runnable tests using only PRD text or raw goals, capped at `max_artifact_lines`.
 2. **Hashing:** The Factory Manager records a SHA-256 hash of every sealed file and stores it in `state.json`.
 3. **Vault Storage:** Files live under `.factory/sealed/<run-id>` and are never copied into the worktree until validation.
-4. **Execution:** During Phase 4 the sealed suite is temporarily copied into the worktree, executed, then deleted immediately after QA Validator reports the gap score.
+4. **Execution:** During Phase 4 the sealed suite is temporarily copied into the worktree, executed, then deleted immediately after QA Validator reports the shadow score.
 5. **Archive:** On delivery approval, the sealed files plus PRD/ARCH/GAP reports are archived under `.factory/archive/<run-id>` for future outcome evaluations.
 
 ### State File Anatomy
@@ -197,7 +197,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 
 ### Quality Gates
 - **Checkpoint approvals**: Human-signed at every `gates` entry; delivery checkpoint cannot be skipped.
-- **Gap thresholds**: Teams often target `gap_score <= 10%`. Exceeding 25% suggests spec/test misalignment.
+- **Gap thresholds**: Teams often target `shadow_score <= 10%`. Exceeding 25% suggests spec/test misalignment.
 - **Hardening limits**: Exceeding `max_hardening_cycles` triggers the continue/deliver/abort decision.
 - **Outcome KPI score**: Anything under 70/100 in OUTCOME-REPORT.md triggers a follow-up action item.
 
@@ -214,7 +214,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 |----------|-------------|-----------|-------|
 | `PRD.md` | Product Manager | Worktree root & archive | Trimmed to `max_prd_lines`. |
 | `ARCH.md` | Architect | Worktree root & archive | Contains diagrams + contracts. |
-| `GAP-REPORT.md` | QA Validator | Worktree root & archive | Records gap score + failure table. |
+| `SHADOW-REPORT.md` | QA Validator | Worktree root & archive | Records shadow score + failure table. |
 | `FACTORY-REPORT.md` | Factory Manager | Worktree root | Delivery summary template. |
 | Sealed tests | QA Sealed | `.factory/sealed/<run-id>` | Hidden until validation; hashed. |
 | `OUTCOME-REPORT.md` | Outcome Evaluator | Worktree & archive | KPI + post-ship assessment. |
