@@ -109,3 +109,23 @@ Model selection comes from `config.yml`. Don't hardcode `claude-sonnet-4.6` in a
 
 ### 4. Breaking express mode
 Express mode skips Phases 1-2. If you add logic that depends on PRD.md or ARCH.md existing, gate it behind a mode check.
+
+## Security — Secure Future Initiative (SFI)
+
+When working in this repository, always apply these security principles:
+
+- **Never commit secrets** — API keys, tokens, passwords, or connection strings must never appear in code or config files. Use environment variables or secret managers.
+- **Validate all inputs** — Treat user input, API responses, and file contents as untrusted. Sanitize before use.
+- **Dependency awareness** — Flag outdated or vulnerable dependencies when encountered. Prefer pinned versions.
+- **Least privilege** — Request only the minimum permissions needed. Avoid broad OAuth scopes or wildcard IAM policies.
+- **Secure defaults** — Default to HTTPS, encrypted storage, and authenticated endpoints. Opt-in to less secure options, never opt-out of secure ones.
+
+## Responsible AI (RAI)
+
+When generating or modifying code, content, or configurations:
+
+- **Transparency** — When AI-generated content is user-facing, make it clear that AI was involved. Do not impersonate humans.
+- **Fairness** — Avoid generating content that stereotypes, excludes, or discriminates based on protected characteristics.
+- **Human oversight** — Recommend human review for high-stakes outputs (financial calculations, access control, health-related content).
+- **Privacy** — Do not log, store, or transmit personal data beyond what the feature explicitly requires. Minimize data collection.
+- **Reliability** — Include error handling and fallback behavior. Do not let AI failures cascade into silent data corruption.
