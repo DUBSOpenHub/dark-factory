@@ -266,6 +266,6 @@ Released under the [MIT License](LICENSE) © 2026 DUBSOpenHub.
 
 ## 🐙 Built with Love
 
-🐙 Built with Love
+Created with 💜 by @DUBSOpenHub with the GitHub Copilot CLI.
 
-**Let's build!** 🚀✨
+Let's build! 🚀✨
