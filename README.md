@@ -264,8 +264,6 @@ Released under the [MIT License](LICENSE) © 2026 DUBSOpenHub.
 
 ---
 
-## 🐙 Built with Love
+🐙 Created with 💜 by [@DUBSOpenHub](https://github.com/DUBSOpenHub) with the [GitHub Copilot CLI](https://docs.github.com/copilot/concepts/agents/about-copilot-cli).
 
-Created with 💜 by [DUBSOpenHub](https://github.com/DUBSOpenHub) to help more people discover the joy of GitHub Copilot CLI.
-
-**Let's build!** 🚀✨
+Let's build! 🚀✨
