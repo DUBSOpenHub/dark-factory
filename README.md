@@ -10,10 +10,26 @@
 
 Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. It isolates the work in a disposable git worktree, orchestrates six specialist agents, and measures quality with [sealed-envelope testing](https://github.com/DUBSOpenHub/shadow-score-spec) — builders never see the hidden acceptance suite that judges them.
 
-> ⚡ **Get started fast!** Copy this right into the [Copilot CLI](https://github.com/github/copilot-cli):
+> ### ⚡ One Command. That's It.
+>
+> **Never used the CLI before? No problem.** Follow these 3 steps:
+>
+> **1. Open your terminal**
+> - 🍎 **Mac:** Press `⌘ + Space`, type **Terminal**, hit Enter
+> - 🪟 **Windows:** Press `Win + X`, choose **Terminal** or **PowerShell**
+> - 🐧 **Linux:** Press `Ctrl + Alt + T`
+>
+> **2. Paste this line and press Enter:**
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/DUBSOpenHub/dark-factory/main/quickstart.sh | bash
 > ```
-> /skills add DUBSOpenHub/dark-factory
-> ```
+> *Already have the CLI? No worries — this detects it and skips straight to adding the skill.*
+>
+> **3. When Copilot opens, type:** `dark factory`
+>
+> That's it — the factory floor is hot! 🏭
+>
+> *Requires an active [Copilot subscription](https://github.com/features/copilot/plans). [Get one here →](https://github.com/features/copilot/plans)*
 
 ## Contents
 1. [Why Sealed-Envelope Testing?](#why-sealed-envelope-testing)
