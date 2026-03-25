@@ -276,6 +276,19 @@ export default function Home() {
                 View on GitHub →
               </a>
             </div>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: ".72rem", color: "var(--muted)", marginTop: "1rem" }}>
+              ☝️ One command to install · Paste that into the{" "}
+              <a href="https://docs.github.com/copilot/concepts/agents/about-copilot-cli" target="_blank" rel="noopener noreferrer" style={{ color: "var(--subtle)", textDecoration: "underline", textUnderlineOffset: "2px" }}>Copilot CLI</a>
+              {" "}and start building
+            </p>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: ".68rem", color: "var(--muted)", marginTop: ".75rem", display: "flex", alignItems: "center", gap: ".4rem" }}>
+              🐙 Created with 💜 by{" "}
+              <a href="https://github.com/greggcochran" target="_blank" rel="noopener noreferrer" style={{ color: "var(--subtle)" }}>Gregg Cochran</a>
+              {" "}
+              <a href="https://github.com/DUBSOpenHub" target="_blank" rel="noopener noreferrer" style={{ color: "var(--subtle)" }}>@DUBSOpenHub</a>
+              {" "}with the{" "}
+              <a href="https://docs.github.com/copilot/concepts/agents/about-copilot-cli" target="_blank" rel="noopener noreferrer" style={{ color: "var(--amber)" }}>GitHub Copilot CLI</a>
+            </p>
           </div>
           <div>
             <div className="tui-window">
