@@ -211,7 +211,7 @@ export default function Home() {
           <div>
             <div className="hero-badge">
               <span className="status-dot" aria-hidden="true" />
-              Codename: Lights Out
+              Agentic Build System · Codename: Lights Out
             </div>
             <h1
               className="hero-name"
@@ -221,23 +221,45 @@ export default function Home() {
             >
               dark<br />factory<em>.</em>
             </h1>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: ".82rem", color: "var(--muted)", marginBottom: "1.5rem", letterSpacing: ".08em" }}>
+              AGENTIC · LIGHTS OUT · SEALED-ENVELOPE TESTING
+            </p>
             <div className="hero-typing-wrap">
               <span className="typed-text">{typedText}</span>
               <span className="cursor-blink" />
             </div>
             <p className="hero-desc">
-              Turn a short free-text goal into a <strong>production-grade pull request</strong>.
-              Six specialist agents, sealed-envelope testing, and a checkpoint-gated pipeline
-              — all from the{" "}
+              The <strong>agentic dark factory</strong> for AI building. Turn a short free-text goal into a{" "}
+              <strong>production-grade pull request</strong> — six specialist agents orchestrated through a
+              checkpoint-gated pipeline with{" "}
               <a
-                href="https://docs.github.com/copilot/concepts/agents/about-copilot-cli"
+                href="https://github.com/DUBSOpenHub/shadow-score-spec"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: "var(--amber)", textDecoration: "underline", textUnderlineOffset: "3px" }}
               >
-                GitHub Copilot CLI
-              </a>.
+                sealed-envelope testing
+              </a>
+              . Builders never see the hidden tests. The{" "}
+              <strong style={{ color: "var(--lime)" }}>shadow score</strong> reveals the truth.
             </p>
+            {/* Hero inline mini-pipeline */}
+            <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
+              {["Goal →", "📋 PRD", "→ 🔒 Sealed QA", "→ 🏗️ Arch", "→ ⚙️ Build", "→ 🧪 Validate", "→ ✅ Ship"].map((step, i) => (
+                <span key={i} style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: ".68rem",
+                  padding: ".25rem .55rem",
+                  borderRadius: "6px",
+                  background: step.includes("🔒") ? "rgba(245,158,11,.1)" : "rgba(139,92,246,.08)",
+                  border: `1px solid ${step.includes("🔒") ? "rgba(245,158,11,.2)" : "rgba(139,92,246,.15)"}`,
+                  color: step.includes("🔒") ? "var(--amber)" : "var(--subtle)",
+                  whiteSpace: "nowrap",
+                }}>
+                  {step}
+                </span>
+              ))}
+            </div>
             <div className="hero-actions">
               <button className="btn-primary" onClick={handleCopy}>
                 {copied ? "✓ Copied!" : "⚡ /skills add DUBSOpenHub/dark-factory"}
@@ -294,7 +316,8 @@ export default function Home() {
           </h2>
           <p className="section-sub" style={{ margin: "0 auto 3rem", textAlign: "center", maxWidth: 600 }}>
             Dark Factory orchestrates a team of specialist agents through a sealed-envelope pipeline.
-            Every build is measured. Every gap is quantified.
+            Every build is measured. Every gap is quantified by the{" "}
+            <strong style={{ color: "var(--amber)" }}>shadow score</strong>.
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.25rem", maxWidth: 900, margin: "0 auto" }}>
             <div className="stat-card" style={{ textAlign: "center" }} ref={agents.ref}>
@@ -318,6 +341,22 @@ export default function Home() {
               <p style={{ fontSize: ".75rem", color: "var(--muted)", marginTop: ".4rem", lineHeight: 1.5 }}>Perfect sealed coverage</p>
             </div>
           </div>
+
+          {/* Shadow Score explainer */}
+          <div className="reveal" style={{ marginTop: "2.5rem", padding: "1.5rem 2rem", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", maxWidth: 700, margin: "2.5rem auto 0", textAlign: "left" }}>
+            <h3 style={{ fontFamily: "var(--font-mono)", fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em", color: "var(--amber)", marginBottom: ".75rem", fontWeight: 700 }}>
+              🔒 What is Shadow Score?
+            </h3>
+            <p style={{ fontSize: ".88rem", color: "var(--subtle)", lineHeight: 1.7, marginBottom: ".75rem" }}>
+              <strong style={{ color: "var(--text)" }}>Shadow Score = sealed test failures ÷ total sealed tests.</strong>{" "}
+              It measures how much the builder missed when they couldn&apos;t see the hidden acceptance suite.
+            </p>
+            <div style={{ display: "flex", gap: "1.5rem", fontFamily: "var(--font-mono)", fontSize: ".78rem", flexWrap: "wrap" }}>
+              <span><span style={{ color: "var(--lime)", fontWeight: 700 }}>0%</span> <span style={{ color: "var(--muted)" }}>— perfect blind coverage</span></span>
+              <span><span style={{ color: "var(--amber)", fontWeight: 700 }}>≤10%</span> <span style={{ color: "var(--muted)" }}>— team target</span></span>
+              <span><span style={{ color: "var(--red)", fontWeight: 700 }}>&gt;25%</span> <span style={{ color: "var(--muted)" }}>— spec/test misalignment</span></span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -326,11 +365,12 @@ export default function Home() {
         <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4rem", alignItems: "center" }}>
           <div className="reveal">
             <span className="section-label">About</span>
-            <h2 className="section-title">Build in<br />the <em>dark</em></h2>
+            <h2 className="section-title">Agentic<br /><em>lights out</em> builds</h2>
             <p className="section-sub" style={{ marginBottom: "1.5rem" }}>
-              Dark Factory isolates every build in a disposable git worktree. QA writes hidden tests
-              before code exists. The builder never sees them. When the build is done, the sealed
-              tests reveal the truth — and the shadow score tells you how much was missed.
+              Dark Factory is an <strong>agentic build system</strong> — it isolates every build in a disposable
+              git worktree, orchestrates six specialist AI agents, and measures quality with sealed-envelope testing.
+              The shadow score tells you exactly how much the builder missed. Lights out means the builder works blind
+              — and the hidden tests prove whether the spec was truly covered.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div className="stat-card">
@@ -370,7 +410,7 @@ export default function Home() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="reveal" style={{ marginBottom: "3.5rem" }}>
             <span className="section-label">Features</span>
-            <h2 className="section-title">Lights out<br />builds<em>.</em></h2>
+            <h2 className="section-title">Agentic lights<br />out builds<em>.</em></h2>
           </div>
           {[
             { num: "01", title: "Goal in, PR out", desc: <><strong>Write a sentence. Get production code.</strong> Dark Factory takes a free-text goal and produces a complete pull request — spec, architecture, implementation, tests, and delivery report.</> },
@@ -678,13 +718,17 @@ export default function Home() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="factory-footer">
-        <span>
-          <span className="footer-gradient">dark factory</span> — built by{" "}
-          <a href="https://github.com/DUBSOpenHub" target="_blank" rel="noopener noreferrer">@DUBSOpenHub</a> with the{" "}
-          <a href="https://docs.github.com/copilot/concepts/agents/about-copilot-cli" target="_blank" rel="noopener noreferrer">GitHub Copilot CLI</a>
+      <footer className="factory-footer" style={{ flexDirection: "column", gap: "1rem", textAlign: "center" }}>
+        <span style={{ fontSize: ".92rem" }}>
+          <span className="footer-gradient">dark factory</span> — created by{" "}
+          <a href="https://github.com/greggcochran" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600 }}>Gregg Cochran</a>
+          {" "}
+          <a href="https://github.com/DUBSOpenHub" target="_blank" rel="noopener noreferrer">@DUBSOpenHub</a>
         </span>
         <span>
+          Built with 💜 using the{" "}
+          <a href="https://docs.github.com/copilot/concepts/agents/about-copilot-cli" target="_blank" rel="noopener noreferrer">GitHub Copilot CLI</a>
+          {" · "}
           <a href="https://github.com/DUBSOpenHub/shadow-score-spec" target="_blank" rel="noopener noreferrer">shadow score spec</a>
           {" · "}
           <a href="https://github.com/DUBSOpenHub/dark-factory" target="_blank" rel="noopener noreferrer">source ↗</a>
