@@ -72,3 +72,42 @@ outcome_evaluation:
 
   # Archive artifacts for post-ship evaluation
   archive_dir: .factory/archive
+
+golden_path:
+  # Master on/off switch. false = zero side effects on invocation.
+  enabled: true
+
+  # Maximum clarifying questions the intake specialist may ask.
+  max_questions: 3
+
+  # Maximum lines in the Plan Card presented to the user.
+  max_plan_card_lines: 12
+
+  # Maximum lines in the internal Product Spec passed to the build process.
+  max_product_spec_lines: 25
+
+  # Copilot skills installation directory.
+  skills_install_dir: "~/.copilot/skills"
+
+  # Removal manifest path pattern ({run_id} is substituted at runtime).
+  undo_manifest_pattern: ".factory/gpb-undo-{run_id}.jsonl"
+
+  # Recipe seeds available to the intake specialist for inference.
+  intake_seeds:
+    - fetch_summarize    # Fetch a URL/feed and summarize it
+    - repo_scanner       # Scan a repository and report findings
+    - text_transformer   # Transform text (translate, reformat, extract)
+
+  # Model routing for Golden Path specialists.
+  # Reads from top-level models block by default; override here if needed.
+  intake_model: claude-sonnet-4.6
+  installer_model: claude-haiku-4.5
+
+  # Terms banned from all user-visible Golden Path strings.
+  jargon_ban_list:
+    - worktree
+    - "sealed envelope"
+    - Phase
+    - pipeline
+    - MCP
+    - agent

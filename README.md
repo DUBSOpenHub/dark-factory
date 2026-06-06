@@ -10,7 +10,7 @@
 
 Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. It isolates the work in a disposable git worktree, orchestrates six specialist agents, and measures quality with [sealed-envelope testing](https://github.com/DUBSOpenHub/shadow-score-spec) — builders never see the hidden acceptance suite that judges them.
 
-> ### ⚡ One Command. That's It.
+> **⚡ One Command. That's It**
 >
 > **Never used the CLI before? No problem.** Follow these 3 steps:
 >
@@ -86,6 +86,12 @@ Sealed testing creates a blindfolded QA loop: the QA Sealed agent writes accepta
 | `dark factory status` | Prints `state.json` plus any pending outcome evaluations without mutating state. |
 | `dark factory evaluate <run-id>` | Launches Phase 7 Outcome Evaluator for an archived run. |
 | `dark factory premium — <goal>` | Routes all agents through `config.models.premium_model` for one run. |
+| `dark factory golden` | **Golden Path Builder** — guided plain-English intake → build → install. |
+| `dark factory golden --help` | List all Golden Path subcommands. |
+| `dark factory golden status` | Print current build status in plain language (read-only). |
+| `dark factory golden resume` | Continue an interrupted Golden Path build. |
+| `dark factory golden undo` | Remove the last installed helper (checksum-verified). |
+| `dark factory golden kill` | Abort an in-progress Golden Path build and clean up. |
 
 ## Installation & Setup
 ### Prerequisites
@@ -150,6 +156,23 @@ Dark Factory reads `config.yml` on every run and never hardcodes tunables.
 | `auto_evaluate_after_days` | `0` | Auto Phase 7 schedule (0 disables automation). |
 | `archive_dir` | `.factory/archive` | Storage for PRD/ARCH/SHADOW consumed by Phase 7. |
 
+### `golden_path`
+All Golden Path Builder tunables live exclusively under this key. Setting
+`enabled: false` disables Golden Path with zero side effects on any other command.
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `enabled` | `true` | Master on/off switch. `false` = zero side effects on `dark factory golden`. |
+| `max_intake_questions` | `3` | Maximum clarifying questions the intake specialist may ask. |
+| `max_plan_card_lines` | `12` | Maximum lines in the Plan Card shown to the user before the build starts. |
+| `max_product_spec_lines` | `25` | Maximum lines in the internal spec passed into the build process. |
+| `skills_install_dir` | `~/.copilot/skills` | Where the built skill is installed after approval. |
+| `undo_manifest_pattern` | `.factory/gpb-undo-{run_id}.jsonl` | Path template for the removal record. |
+| `recipe_seeds` | fetch\_summarize, repo\_scanner, text\_transformer | Recipe types used for inference confidence matching. |
+| `intake_model` | `claude-sonnet-4.6` | Model used for the intake specialist. |
+| `installer_model` | `claude-haiku-4.5` | Model used for the delivery specialist. |
+| `jargon_ban_list` | worktree, sealed envelope, Phase, pipeline, MCP, agent | Terms banned from all user-visible Golden Path strings. |
+
 ## Usage Examples
 ### 1. Full build (“Lights Out”)
 ```
@@ -187,6 +210,55 @@ Expected output snippet:
 🏭 Outcome Score: 75/100
 ```
 If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due even without this command.
+
+### 4. Golden Path Builder — plain-English skill creation
+
+```
+dark factory golden
+```
+
+When prompted, describe what you want your new helper to do. Example:
+```
+Fetch today's GitHub trending repos and summarize them for me
+```
+
+Expected flow:
+```
+Intake Specialist: Based on your description, here's your Plan Card:
+
+  Your new helper: Trending Repos Digest
+  Trigger: "trending digest"
+  What it does: Fetches today's trending GitHub repos and prints a short summary.
+  What it uses: GitHub trending page
+  Where it will be built: (inside a private work folder)
+  Where it will be installed: ~/.copilot/skills
+  How to remove it later: dark factory golden undo
+
+Does this look right? (y / edit / cancel)
+```
+
+After approving, the factory builds the skill. After the build:
+```
+✅ Your "Trending Repos Digest" helper is ready.
+   Trigger: "trending digest"
+   It will be installed to: ~/.copilot/skills
+
+Install it now? (install / cancel)
+```
+
+After install:
+```
+🎉 All set! Try your new helper right now:
+
+   trending digest
+
+To remove it later: dark factory golden undo
+```
+
+Tips:
+- Be descriptive about what the helper should **output** for best results.
+- If the intake specialist asks questions, answer in plain language.
+- Use `dark factory golden undo` to cleanly remove any installed helper.
 
 ## Architecture Overview
 - **Factory Manager (SKILL.md):** Loads config, determines mode, routes each `task()` call to the right model with guardrails (timeouts, retries, artifact caps) and surfaces checkpoints.

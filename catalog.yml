@@ -9,7 +9,7 @@ description: >
 emoji: "🏭"
 codename: Lights Out
 category: specialist
-version: "0.1.0"
+version: "0.2.0"
 tags: [factory, orchestrator, multi-agent, sealed-testing, dark-factory, pipeline, copilot-cli]
 platforms: [copilot-cli]
 input_format: free-text
@@ -22,5 +22,7 @@ links:
     - agents/lead-eng.md
     - agents/qa-validator.md
     - agents/outcome-evaluator.md
+    - agents/golden-path-intake.md
+    - agents/golden-path-installer.md
 license: MIT
 owner: DUBSOpenHub
