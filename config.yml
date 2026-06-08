@@ -98,12 +98,12 @@ golden_path:
     - repo_scanner       # Scan a repository and report findings
     - text_transformer   # Transform text (translate, reformat, extract)
 
-  # Model routing for Golden Path specialists.
+  # Model routing for Copilot Skill Builder specialists.
   # Reads from top-level models block by default; override here if needed.
   intake_model: claude-sonnet-4.6
   installer_model: claude-haiku-4.5
 
-  # Terms banned from all user-visible Golden Path strings.
+  # Terms banned from all user-visible Copilot Skill Builder strings.
   jargon_ban_list:
     - worktree
     - "sealed envelope"

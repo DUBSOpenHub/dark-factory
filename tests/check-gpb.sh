@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# tests/check-gpb.sh — Open validation script for Golden Path Builder
+# tests/check-gpb.sh — Open validation script for Copilot Skill Builder
 # Usage: bash tests/check-gpb.sh [--jargon-only]
 #
 # Checks:
 #   1. YAML parsing for config.yml and catalog.yml
 #   2. Catalog agent references exist on disk
-#   3. Required GPB files exist
-#   4. Prompt line counts (agents/golden-path-*.md must be ≤200 lines each)
+#   3. Required Copilot Skill Builder files exist
+#   4. Prompt line counts (internal golden-path prompt files must be ≤200 lines each)
 #   5. Required config keys are present under golden_path:
-#   6. Jargon scan (banned terms must not appear in user-visible GPB strings)
+#   6. Jargon scan (banned terms must not appear in user-visible Copilot Skill Builder strings)
 # Exits 0 on all-pass, non-zero on any failure.
 
 set -euo pipefail
@@ -71,7 +71,7 @@ EOF
 
   # ── 3. Required Files Exist ──────────────────────────────────────────────────
 
-  section "3. Required GPB Files"
+  section "3. Required Copilot Skill Builder Files"
 
   required_files=(
     "agents/golden-path-intake.md"
@@ -153,7 +153,7 @@ fi  # end non-jargon-only block
 
 # ── 6. Jargon Scan ───────────────────────────────────────────────────────────
 
-section "6. Jargon Scan (banned terms in user-visible GPB strings)"
+section "6. Jargon Scan (banned terms in user-visible Copilot Skill Builder strings)"
 
 # Read banned terms from config.yml
 banned_terms=$(python3 - <<'EOF'
@@ -173,13 +173,13 @@ if [[ -z "$banned_terms" ]]; then
   fail "could not read jargon_ban_list from config.yml"
 fi
 
-# Extract SKILL.md golden section, stripping fenced code blocks
+# Extract SKILL.md Copilot Skill Builder section, stripping fenced code blocks
 # (bash commands inside code blocks legitimately use technical terms)
 extract_golden_section() {
   if [[ ! -f "SKILL.md" ]]; then return; fi
   awk '
-    /^## Golden Path Mode/ { in_section=1 }
-    in_section && /^## / && !/^## Golden Path Mode/ { in_section=0 }
+    /^## Copilot Skill Builder Mode/ { in_section=1 }
+    in_section && /^## / && !/^## Copilot Skill Builder Mode/ { in_section=0 }
     in_section { print }
   ' SKILL.md | awk '
     /^[ \t]*```/ { in_fence = !in_fence; next }

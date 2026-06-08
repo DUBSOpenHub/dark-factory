@@ -86,12 +86,13 @@ Sealed testing creates a blindfolded QA loop: the QA Sealed agent writes accepta
 | `dark factory status` | Prints `state.json` plus any pending outcome evaluations without mutating state. |
 | `dark factory evaluate <run-id>` | Launches Phase 7 Outcome Evaluator for an archived run. |
 | `dark factory premium — <goal>` | Routes all agents through `config.models.premium_model` for one run. |
-| `dark factory golden` | **Golden Path Builder** — guided plain-English intake → build → install. |
-| `dark factory golden --help` | List all Golden Path subcommands. |
-| `dark factory golden status` | Print current build status in plain language (read-only). |
-| `dark factory golden resume` | Continue an interrupted Golden Path build. |
-| `dark factory golden undo` | Remove the last installed helper (checksum-verified). |
-| `dark factory golden kill` | Abort an in-progress Golden Path build and clean up. |
+| `dark factory skill-builder` | **Copilot Skill Builder** — guided plain-English intake → build → install. |
+| `dark factory skill-builder --help` | List all Copilot Skill Builder subcommands. |
+| `dark factory skill-builder status` | Print current build status in plain language (read-only). |
+| `dark factory skill-builder resume` | Continue an interrupted Copilot Skill Builder build. |
+| `dark factory skill-builder undo` | Remove the last installed helper (checksum-verified). |
+| `dark factory skill-builder kill` | Abort an in-progress Copilot Skill Builder build and clean up. |
+| `dark factory golden` | Legacy alias for `dark factory skill-builder`. |
 
 ## Installation & Setup
 ### Prerequisites
@@ -157,21 +158,21 @@ Dark Factory reads `config.yml` on every run and never hardcodes tunables.
 | `archive_dir` | `.factory/archive` | Storage for PRD/ARCH/SHADOW consumed by Phase 7. |
 
 ### `golden_path`
-All Golden Path Builder tunables live exclusively under this key. Setting
-`enabled: false` disables Golden Path with zero side effects on any other command.
+All Copilot Skill Builder tunables live exclusively under this internal key.
+Setting `enabled: false` disables Copilot Skill Builder with zero side effects on any other command.
 
 | Key | Default | Purpose |
 |-----|---------|---------|
-| `enabled` | `true` | Master on/off switch. `false` = zero side effects on `dark factory golden`. |
-| `max_intake_questions` | `3` | Maximum clarifying questions the intake specialist may ask. |
+| `enabled` | `true` | Master on/off switch. `false` = zero side effects on `dark factory skill-builder`. |
+| `max_questions` | `3` | Maximum clarifying questions the intake specialist may ask. |
 | `max_plan_card_lines` | `12` | Maximum lines in the Plan Card shown to the user before the build starts. |
 | `max_product_spec_lines` | `25` | Maximum lines in the internal spec passed into the build process. |
 | `skills_install_dir` | `~/.copilot/skills` | Where the built skill is installed after approval. |
 | `undo_manifest_pattern` | `.factory/gpb-undo-{run_id}.jsonl` | Path template for the removal record. |
-| `recipe_seeds` | fetch\_summarize, repo\_scanner, text\_transformer | Recipe types used for inference confidence matching. |
+| `intake_seeds` | fetch\_summarize, repo\_scanner, text\_transformer | Recipe types used for inference confidence matching. |
 | `intake_model` | `claude-sonnet-4.6` | Model used for the intake specialist. |
 | `installer_model` | `claude-haiku-4.5` | Model used for the delivery specialist. |
-| `jargon_ban_list` | worktree, sealed envelope, Phase, pipeline, MCP, agent | Terms banned from all user-visible Golden Path strings. |
+| `jargon_ban_list` | worktree, sealed envelope, Phase, pipeline, MCP, agent | Terms banned from all user-visible Copilot Skill Builder strings. |
 
 ## Usage Examples
 ### 1. Full build (“Lights Out”)
@@ -211,10 +212,10 @@ Expected output snippet:
 ```
 If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due even without this command.
 
-### 4. Golden Path Builder — plain-English skill creation
+### 4. Copilot Skill Builder — plain-English skill creation
 
 ```
-dark factory golden
+dark factory skill-builder
 ```
 
 When prompted, describe what you want your new helper to do. Example:
@@ -232,7 +233,7 @@ Intake Specialist: Based on your description, here's your Plan Card:
   What it uses: GitHub trending page
   Where it will be built: (inside a private work folder)
   Where it will be installed: ~/.copilot/skills
-  How to remove it later: dark factory golden undo
+  How to remove it later: dark factory skill-builder undo
 
 Does this look right? (y / edit / cancel)
 ```
@@ -252,13 +253,13 @@ After install:
 
    trending digest
 
-To remove it later: dark factory golden undo
+To remove it later: dark factory skill-builder undo
 ```
 
 Tips:
 - Be descriptive about what the helper should **output** for best results.
 - If the intake specialist asks questions, answer in plain language.
-- Use `dark factory golden undo` to cleanly remove any installed helper.
+- Use `dark factory skill-builder undo` to cleanly remove any installed helper.
 
 ## Architecture Overview
 - **Factory Manager (SKILL.md):** Loads config, determines mode, routes each `task()` call to the right model with guardrails (timeouts, retries, artifact caps) and surfaces checkpoints.

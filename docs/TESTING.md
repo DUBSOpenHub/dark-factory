@@ -158,36 +158,36 @@ head -1 SKILL.md | grep -q '^---' && echo '✅ Frontmatter present'
 
 ---
 
-## Golden Path Builder — Playbooks & Validation
+## Copilot Skill Builder — Playbooks & Validation
 
-### Playbook GPB-1: Help Command
+### Playbook CSB-1: Help Command
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | `dark factory golden --help` | Output lists: `status`, `resume`, `undo`, `kill`, `--help` |
+| 1 | `dark factory skill-builder --help` | Output lists: `status`, `resume`, `undo`, `kill`, `--help` |
 | 2 | Verify | No jargon (worktree / sealed envelope / Phase / pipeline / MCP / agent) in output |
 
-### Playbook GPB-2: Clear Description (Zero Questions)
+### Playbook CSB-2: Clear Description (Zero Questions)
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | `dark factory golden` | Intake specialist starts |
+| 1 | `dark factory skill-builder` | Intake specialist starts |
 | 2 | `Fetch today's GitHub trending repos and summarize them` | Plan Card generated immediately, 0 questions asked |
 | 3 | Review Plan Card | Contains: helper name, trigger, what it does, install location, removal command |
 | 4 | `y` | Build starts |
 | 5 | *(build completes)* | Delivery summary presented, install prompt shown |
 | 6 | `install` | WHAT_WAS_BUILT.md created, try-it-now printed |
 
-### Playbook GPB-3: Vague Description (≤3 Questions)
+### Playbook CSB-3: Vague Description (≤3 Questions)
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | `dark factory golden` | Intake specialist starts |
+| 1 | `dark factory skill-builder` | Intake specialist starts |
 | 2 | `do something useful with text` | Intake asks ≤3 plain-language questions |
 | 3 | Answer each question | After 3 questions at most, Plan Card generated |
 | 4 | Verify | No 4th question is ever asked |
 
-### Playbook GPB-4: Cancel at Plan Card
+### Playbook CSB-4: Cancel at Plan Card
 
 | Step | You Say | Expected |
 |------|---------|----------|
@@ -195,7 +195,7 @@ head -1 SKILL.md | grep -q '^---' && echo '✅ Frontmatter present'
 | 2 | `cancel` | Plain-language cancellation message |
 | 3 | Verify | No files created outside `.factory/`; skills directory untouched |
 
-### Playbook GPB-5: Decline Install Approval
+### Playbook CSB-5: Decline Install Approval
 
 | Step | You Say | Expected |
 |------|---------|----------|
@@ -203,68 +203,68 @@ head -1 SKILL.md | grep -q '^---' && echo '✅ Frontmatter present'
 | 2 | `cancel` | Skills directory unmodified; plain-language message |
 | 3 | Verify | `~/.copilot/skills` contains no new files |
 
-### Playbook GPB-6: Clean Undo (No Drift)
+### Playbook CSB-6: Clean Undo (No Drift)
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | Complete a Golden Path install | Helper installed, WHAT_WAS_BUILT.md present |
-| 2 | `dark factory golden undo` | All manifest files removed, exit 0 |
+| 1 | Complete a Copilot Skill Builder install | Helper installed, WHAT_WAS_BUILT.md present |
+| 2 | `dark factory skill-builder undo` | All manifest files removed, exit 0 |
 | 3 | Verify | Installed files gone; `Your helper has been removed.` message |
 
-### Playbook GPB-7: Undo with Checksum Drift
+### Playbook CSB-7: Undo with Checksum Drift
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | Complete a Golden Path install | Helper installed |
+| 1 | Complete a Copilot Skill Builder install | Helper installed |
 | 2 | Manually edit one installed file | File now differs from manifest hash |
-| 3 | `dark factory golden undo` | Drifted path(s) listed; NO files deleted; exit non-zero |
+| 3 | `dark factory skill-builder undo` | Drifted path(s) listed; NO files deleted; exit non-zero |
 | 4 | Verify | All installed files still present |
 
-### Playbook GPB-8: Status During Build
+### Playbook CSB-8: Status During Build
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | Start a Golden Path build, approve Plan Card | Build in progress |
-| 2 | *(in a new session)* `dark factory golden status` | Plain-language status like `Step 2 of 3: Building your helper now.` |
+| 1 | Start a Copilot Skill Builder build, approve Plan Card | Build in progress |
+| 2 | *(in a new session)* `dark factory skill-builder status` | Plain-language status like `Step 2 of 3: Building your helper now.` |
 | 3 | Verify | state.json not modified by status command |
 
-### Playbook GPB-9: Kill In-Progress Build
+### Playbook CSB-9: Kill In-Progress Build
 
 | Step | You Say | Expected |
 |------|---------|----------|
-| 1 | Start a Golden Path build | Build in progress |
-| 2 | `dark factory golden kill` | `Build stopped. Your work folder has been cleaned up.` |
+| 1 | Start a Copilot Skill Builder build | Build in progress |
+| 2 | `dark factory skill-builder kill` | `Build stopped. Your work folder has been cleaned up.` |
 | 3 | Verify | state.json `gpb.status = "killed"`; build work folder removed |
 
-### Playbook GPB-10: Enabled: false
+### Playbook CSB-10: Enabled: false
 
 | Step | You Say | Expected |
 |------|---------|----------|
 | 1 | Set `golden_path.enabled: false` in config.yml | — |
-| 2 | `dark factory golden` | Plain-language disabled message |
+| 2 | `dark factory skill-builder` | Plain-language disabled message |
 | 3 | Verify | Zero files written, zero SQL rows inserted, zero directories created |
 
-### Playbook GPB-11: Existing Commands Unaffected
+### Playbook CSB-11: Existing Commands Unaffected
 
 | Step | You Say | Expected |
 |------|---------|----------|
 | 1 | `dark factory "build a fizzbuzz CLI"` | Normal full pipeline, unmodified behavior |
 | 2 | `dark factory express "add retry logic"` | Express mode, unmodified behavior |
-| 3 | Verify | Output byte-identical to pre-Golden-Path baseline |
+| 3 | Verify | Output byte-identical to pre-Copilot-Skill-Builder baseline |
 
 ---
 
-## Golden Path QA Checklist
+## Copilot Skill Builder QA Checklist
 
-Before submitting Golden Path changes, verify:
+Before submitting Copilot Skill Builder changes, verify:
 
-- [ ] `dark factory golden --help` lists: status, resume, undo, kill
+- [ ] `dark factory skill-builder --help` lists: status, resume, undo, kill
 - [ ] Plan Card is ≤12 lines and contains no jargon
 - [ ] No build starts until Plan Card is explicitly approved
 - [ ] Skills directory is untouched before install approval
 - [ ] Undo manifest is written BEFORE any copy to skills directory
-- [ ] `dark factory golden undo` exits 0 on clean install (files removed)
-- [ ] `dark factory golden undo` exits non-zero on drift (no files deleted)
+- [ ] `dark factory skill-builder undo` exits 0 on clean install (files removed)
+- [ ] `dark factory skill-builder undo` exits non-zero on drift (no files deleted)
 - [ ] WHAT_WAS_BUILT.md contains all 5 sections: What, Where, Trigger, Remove, Known limits
 - [ ] `golden_path.enabled: false` exits with plain message and zero side effects
 - [ ] `wc -l agents/golden-path-intake.md` → ≤200 lines
@@ -274,10 +274,10 @@ Before submitting Golden Path changes, verify:
 
 ---
 
-## Golden Path Validation Commands
+## Copilot Skill Builder Validation Commands
 
 ```bash
-# Run the full GPB validation script
+# Run the full Copilot Skill Builder validation script
 bash tests/check-gpb.sh
 
 # YAML parse check
@@ -287,7 +287,7 @@ python3 -c "import yaml; yaml.safe_load(open('catalog.yml'))" && echo '✅ catal
 # Confirm golden_path block present in config
 grep -q 'golden_path:' config.yml && echo '✅ golden_path block present'
 
-# Line count for GPB agents (must be ≤200 each)
+# Line count for Copilot Skill Builder agents (must be ≤200 each)
 wc -l agents/golden-path-intake.md agents/golden-path-installer.md
 
 # Confirm required files exist

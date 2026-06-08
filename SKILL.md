@@ -368,11 +368,12 @@ curl -s "https://raw.githubusercontent.com/DUBSOpenHub/skill-telemetry/main/docs
 
 ---
 
-## Golden Path Mode
+## Copilot Skill Builder Mode
 
-> **Guard clause:** If the user's message does NOT begin with `dark factory golden`,
-> skip this entire section immediately and fall through to the existing factory
-> build section above. Non-golden commands are byte-identical to their pre-Golden-Path behavior.
+> **Guard clause:** If the user's message does NOT begin with `dark factory skill-builder`,
+> `dark factory skill builder`, or `dark factory golden`, skip this entire section
+> immediately and fall through to the existing factory build section above. Other
+> commands are byte-identical to their pre-Copilot-Skill-Builder behavior.
 
 ### Startup — Read Configuration
 
@@ -388,7 +389,7 @@ Before routing any subcommand, read `config.yml` and locate the `golden_path:` b
   No filesystem side effects occur:
 
   ```
-  Golden Path Builder is not enabled.
+  Copilot Skill Builder is not enabled.
   To turn it on, set golden_path.enabled: true in config.yml.
   ```
 
@@ -398,6 +399,20 @@ Inspect the full message text and dispatch to the matching handler:
 
 | Message text | Handler |
 |---|---|
+| `dark factory skill-builder --help` | Help Handler |
+| `dark factory skill-builder status` | Status Handler |
+| `dark factory skill-builder resume` | Resume Handler |
+| `dark factory skill-builder undo` | Undo Handler |
+| `dark factory skill-builder kill` | Kill Handler |
+| `dark factory skill-builder` (bare) | Intake Flow (empty description) |
+| `dark factory skill-builder <description>` | Intake Flow (description pre-filled) |
+| `dark factory skill builder --help` | Help Handler |
+| `dark factory skill builder status` | Status Handler |
+| `dark factory skill builder resume` | Resume Handler |
+| `dark factory skill builder undo` | Undo Handler |
+| `dark factory skill builder kill` | Kill Handler |
+| `dark factory skill builder` (bare) | Intake Flow (empty description) |
+| `dark factory skill builder <description>` | Intake Flow (description pre-filled) |
 | `dark factory golden --help` | Help Handler |
 | `dark factory golden status` | Status Handler |
 | `dark factory golden resume` | Resume Handler |
@@ -413,14 +428,16 @@ Inspect the full message text and dispatch to the matching handler:
 Print the following and EXIT:
 
 ```
-Golden Path Builder — Quick Reference
+Copilot Skill Builder — Quick Reference
 
-  dark factory golden               Start building a new helper
-  dark factory golden status        Check the current build status
-  dark factory golden resume        Continue an interrupted build
-  dark factory golden undo          Remove the last installed helper
-  dark factory golden kill          Stop a build that is in progress
-  dark factory golden --help        Show this help text
+  dark factory skill-builder               Start building a new helper
+  dark factory skill-builder status        Check the current build status
+  dark factory skill-builder resume        Continue an interrupted build
+  dark factory skill-builder undo          Remove the last installed helper
+  dark factory skill-builder kill          Stop a build that is in progress
+  dark factory skill-builder --help        Show this help text
+
+Legacy alias: dark factory golden
 ```
 
 ---
@@ -429,7 +446,7 @@ Golden Path Builder — Quick Reference
 
 1. Read `config.isolation.state_file`.
 2. If the file does not exist or has no `gpb` key:
-   Print `No Golden Path build is in progress.` EXIT.
+   Print `No Copilot Skill Builder build is in progress.` EXIT.
 3. Map `gpb.status` to a plain-language message:
 
 | `gpb.status` | User output |
@@ -439,8 +456,8 @@ Golden Path Builder — Quick Reference
 | `building` | `Step 2 of 3: Building your helper now.` |
 | `awaiting_install` | `Step 3 of 3: Build complete. Waiting for your install approval.` |
 | `installed` | `Your helper "{gpb.skill_name}" is installed. Trigger: "{gpb.trigger_phrase}"` |
-| `killed` | `This build was stopped. Run dark factory golden to start a new one.` |
-| `aborted` | `This build encountered an error and was stopped. Run dark factory golden to start a new one.` |
+| `killed` | `This build was stopped. Run dark factory skill-builder to start a new one.` |
+| `aborted` | `This build encountered an error and was stopped. Run dark factory skill-builder to start a new one.` |
 
 Print the mapped message and EXIT without modifying state.json.
 
@@ -450,7 +467,7 @@ Print the mapped message and EXIT without modifying state.json.
 
 1. Read `config.isolation.state_file` → `gpb` namespace.
 2. If `gpb.status` ∈ {`killed`, `aborted`}:
-   Print `This build was stopped and cannot be resumed. Start a new one with: dark factory golden`
+   Print `This build was stopped and cannot be resumed. Start a new one with: dark factory skill-builder`
    EXIT.
 3. If `gpb.status` = `installed`:
    Print `Your helper is already installed. Trigger: "{gpb.trigger_phrase}"`
@@ -497,7 +514,7 @@ Print the mapped message and EXIT without modifying state.json.
 
 1. Read `config.isolation.state_file` → `gpb` namespace.
 2. If `gpb.status` = `installed`:
-   Print `Your helper is already installed. To remove it: dark factory golden undo`
+   Print `Your helper is already installed. To remove it: dark factory skill-builder undo`
    EXIT 0.
 3. If `gpb.status` not in {`intake`, `plan_approved`, `building`, `awaiting_install`}:
    Print `No active build found.`
@@ -531,7 +548,7 @@ Print the mapped message and EXIT without modifying state.json.
 4. **Dispatch intake specialist:**
 
    Invoke the intake specialist using model `<config.golden_path.intake_model>`,
-   description `"Golden Path intake"`, with the full content of
+   description `"Copilot Skill Builder intake"`, with the full content of
    `golden-path-intake.md` as the prompt. Pass these parameters:
 
    - `user_description`: user description, or empty if bare command
@@ -577,7 +594,7 @@ Print the mapped message and EXIT without modifying state.json.
 12. **Dispatch installer specialist:**
 
     Invoke the installer specialist using model `<config.golden_path.installer_model>`,
-    description `"Golden Path install"`, with the full content of
+    description `"Copilot Skill Builder install"`, with the full content of
     `golden-path-installer.md` as the prompt. Pass these parameters:
 
     - `build_folder_path`: `<build_folder_path>`
