@@ -1,10 +1,38 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const SITE = "https://dubsopenhub.github.io/dark-factory";
+const DESCRIPTION =
+  "Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. Eight specialist agents drawn from different model families, sealed-envelope testing, and a checkpoint-gated pipeline.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
   title: "Dark Factory 🏭 — Lights Out Builds",
-  description:
-    "Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. Six specialist agents, sealed-envelope testing, checkpoint-gated pipeline.",
+  description: DESCRIPTION,
+  keywords: [
+    "GitHub Copilot CLI",
+    "Copilot skill",
+    "agentic build system",
+    "sealed-envelope testing",
+    "shadow score",
+    "adversarial independence",
+    "AI code review",
+  ],
+  authors: [{ name: "DUBSOpenHub", url: "https://github.com/DUBSOpenHub" }],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: SITE,
+    siteName: "Dark Factory",
+    title: "Dark Factory 🏭 — Lights Out Builds",
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dark Factory 🏭 — Lights Out Builds",
+    description: DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

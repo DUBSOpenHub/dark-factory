@@ -73,8 +73,8 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
 
   // ── Counters ──
-  const agents = useCounter(6);
-  const phases = useCounter(7);
+  const agents = useCounter(8);
+  const phases = useCounter(8);
   const hardening = useCounter(3);
   const shadow = useCounter(0);
 
@@ -230,7 +230,7 @@ export default function Home() {
             </div>
             <p className="hero-desc">
               The <strong>agentic dark factory</strong> for AI building. Turn a short free-text goal into a{" "}
-              <strong>production-grade pull request</strong> — six specialist agents orchestrated through a
+              <strong>production-grade pull request</strong> — eight specialist agents from different model families orchestrated through a
               checkpoint-gated pipeline with{" "}
               <a
                 href="https://github.com/DUBSOpenHub/shadow-score-spec"
@@ -325,7 +325,7 @@ export default function Home() {
         <div className="reveal" style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
           <span className="section-label">The Machine</span>
           <h2 className="section-title" style={{ textAlign: "center", marginBottom: "1rem" }}>
-            <em>6 agents</em>, 7 phases, <em>zero blind spots</em>
+            <em>8 agents</em>, 8 phases, <em>zero blind spots</em>
           </h2>
           <p className="section-sub" style={{ margin: "0 auto 3rem", textAlign: "center", maxWidth: 600 }}>
             Dark Factory orchestrates a team of specialist agents through a sealed-envelope pipeline.
@@ -381,7 +381,7 @@ export default function Home() {
             <h2 className="section-title">Agentic<br /><em>lights out</em> builds</h2>
             <p className="section-sub" style={{ marginBottom: "1.5rem" }}>
               Dark Factory is an <strong>agentic build system</strong> — it isolates every build in a disposable
-              git worktree, orchestrates six specialist AI agents, and measures quality with sealed-envelope testing.
+              git worktree, orchestrates eight specialist AI agents drawn from different model families, and measures quality with sealed-envelope testing.
               The shadow score tells you exactly how much the builder missed. Lights out means the builder works blind
               — and the hidden tests prove whether the spec was truly covered.
             </p>
@@ -428,7 +428,7 @@ export default function Home() {
           {[
             { num: "01", title: "Goal in, PR out", desc: <><strong>Write a sentence. Get production code.</strong> Dark Factory takes a free-text goal and produces a complete pull request — spec, architecture, implementation, tests, and delivery report.</> },
             { num: "02", title: "Sealed-envelope testing", desc: <><strong>QA writes hidden acceptance tests before any code exists.</strong> The builder never sees them. Shadow scores quantify blind spots the builder didn&apos;t know about.</> },
-            { num: "03", title: "Six specialist agents", desc: <><strong>Each phase has its own expert.</strong> Product Manager, Architect, QA Sealed, Lead Engineer, QA Validator, and Outcome Evaluator — stateless, focused, governed.</> },
+            { num: "03", title: "Eight specialist agents", desc: <><strong>Each phase has its own expert.</strong> Product Manager, Architect, Arch Critic, QA Sealed, Lead Engineer, Red Team, QA Validator, and Outcome Evaluator — stateless, focused, governed, and drawn from different model families.</> },
             { num: "04", title: "Checkpoint-gated", desc: <><strong>You stay in control.</strong> Human approval gates at every phase boundary. Review the PRD, approve the architecture, inspect the build — or go fully dark with skip-all.</> },
             { num: "05", title: "Crash-recoverable", desc: <><strong>Every phase checkpoints to state.json.</strong> Network drops, timeouts, interrupted sessions — just run <code style={{ color: "var(--amber)", fontFamily: "var(--font-mono)", fontSize: ".88rem", background: "rgba(245,158,11,.08)", padding: ".1rem .4rem", borderRadius: "4px" }}>dark factory resume</code> and continue.</> },
             { num: "06", title: "Express mode", desc: <><strong>Short goals get fast builds.</strong> Express mode skips PRD and architecture, but still runs sealed QA from the raw goal. Quick fixes get the same quality envelope.</> },
@@ -513,16 +513,18 @@ export default function Home() {
           <div className="reveal" style={{ marginBottom: "3rem" }}>
             <span className="section-label">Agent Team</span>
             <h2 className="section-title">The <em>team.</em></h2>
-            <p className="section-sub">Six specialist agents, each with its own prompt, model assignment, and governance rules. Stateless — they only see what the Factory Manager passes them.</p>
+            <p className="section-sub">Eight specialist agents, each with its own prompt, model assignment, and governance rules. Stateless — they only see what the Factory Manager passes them.</p>
           </div>
           <div className="reveal" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.25rem" }}>
             {[
-              { icon: "📋", name: "Product Manager", role: "Phase 1 · PRD Author", desc: "Turns your free-text goal into a structured PRD with acceptance criteria, user stories, and technical constraints. Capped at 180 lines.", model: "claude-sonnet-4.6" },
-              { icon: "🏗️", name: "Architect", role: "Phase 2b · System Designer", desc: "Designs the system from the PRD — diagrams, contracts, file structure, tech decisions. Runs in parallel with QA Sealed.", model: "claude-sonnet-4.6" },
-              { icon: "🔒", name: "QA Sealed", role: "Phase 2a · Hidden Test Author", desc: "Writes acceptance tests from the PRD that the builder will never see. Tests are SHA-256 hashed and stored in a sealed vault.", model: "claude-sonnet-4.6" },
-              { icon: "⚙️", name: "Lead Engineer", role: "Phase 3 & 5 · Builder", desc: "Implements the spec, writes tests, and handles hardening cycles. Only sees failure messages from sealed tests — never the tests themselves.", model: "claude-sonnet-4.6" },
-              { icon: "🧪", name: "QA Validator", role: "Phase 4 · Sealed Test Runner", desc: "Temporarily injects sealed tests into the worktree, runs them, reports the shadow score, then removes all traces.", model: "claude-haiku-4.5" },
-              { icon: "📊", name: "Outcome Evaluator", role: "Phase 7 · Post-Ship Analyst", desc: "Revisits archived artifacts after delivery. Scores PRD criteria fulfillment and KPI alignment out of 100.", model: "claude-sonnet-4.6" },
+              { icon: "📋", name: "Product Manager", role: "Phase 1 · PRD Author", desc: "Turns your free-text goal into a structured PRD with acceptance criteria, user stories, and technical constraints.", model: "gpt-5.5 · openai" },
+              { icon: "🏗️", name: "Architect", role: "Phase 2b · System Designer", desc: "Designs the system from the PRD — diagrams, contracts, file structure, tech decisions. Runs in parallel with the sealed authors.", model: "claude-opus-5 · anthropic" },
+              { icon: "🔍", name: "Arch Critic", role: "Phase 2.5b · Design Reviewer", desc: "Reviews the architecture before a line is implemented, from a different family than the Architect, with a full requirement-coverage walk.", model: "gpt-5.6-terra · openai" },
+              { icon: "🔒", name: "QA Sealed", role: "Phase 2a · Hidden Test Author", desc: "Writes acceptance tests from the PRD that the builder will never see. Two independent families author suites, so one family's blind spot cannot sink the envelope.", model: "gpt-5.6-terra + gemini-3.1-pro" },
+              { icon: "⚙️", name: "Lead Engineer", role: "Phase 3 & 5 · Builder", desc: "Implements the spec and handles hardening cycles. Different family from every seal author — it only ever sees failure messages, never the tests.", model: "claude-opus-4.8 · anthropic" },
+              { icon: "🎯", name: "Red Team", role: "Phase 4.5 · Adversary", desc: "Attacks what the spec forgot once the seal opens. Each finding is classed as spec gap or implementation bug, which decides who learns from it.", model: "gpt-5.6-sol · openai" },
+              { icon: "🧪", name: "QA Validator", role: "Phase 4 · Sealed Test Runner", desc: "Runs both suites in a disposable worktree built from the engineer's commit, reports the shadow score, then destroys it. Identity is unconstrained — it executes, it does not author.", model: "gemini-3.6-flash · google" },
+              { icon: "📊", name: "Outcome Evaluator", role: "Phase 7 · Post-Ship Analyst", desc: "Revisits archived artifacts after delivery. Scores PRD criteria fulfillment and KPI alignment out of 100.", model: "claude-sonnet-5 · anthropic" },
             ].map((a) => (
               <div key={a.name} className="agent-card">
                 <div className="agent-icon">{a.icon}<span className="agent-powered" /></div>
@@ -637,7 +639,7 @@ export default function Home() {
           </div>
           <div className="reveal">
             {[
-              { name: "Full Build", code: "dark factory — <goal>", desc: "Complete pipeline with all 7 phases and checkpoints at every gate. The \"lights out\" experience." },
+              { name: "Full Build", code: "dark factory — <goal>", desc: "Complete pipeline with all 8 phases and checkpoints at every gate. The \"lights out\" experience." },
               { name: "Express", code: "dark factory express — <goal>", desc: "Skips PRD/Architecture. Sealed QA still runs from the raw goal. One checkpoint at delivery." },
               { name: "Resume", code: "dark factory resume", desc: "Reloads state.json and continues from the saved phase. Crash recovery built in." },
               { name: "Status", code: "dark factory status", desc: "Prints current state without mutating anything. Shows pending evaluations." },
