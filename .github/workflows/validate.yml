@@ -63,6 +63,49 @@ jobs:
           print("✅ Catalog references valid")
           PY
 
+      - name: Shadow Score Spec Level 4 conformance
+        run: python3 .github/scripts/validate_conformance.py
+
+      - name: Verify every agent is catalogued
+        run: |
+          python - <<'PY'
+          import pathlib, sys
+          import yaml
+
+          root = pathlib.Path(".")
+          catalog = yaml.safe_load(root.joinpath("catalog.yml").read_text(encoding="utf-8"))
+          listed = set((catalog.get("links", {}) or {}).get("agents", []) or [])
+          on_disk = {str(p) for p in sorted(root.glob("agents/*.md"))}
+
+          uncatalogued = on_disk - listed
+          if uncatalogued:
+              print("::error::agent files exist but are not listed in catalog.yml links.agents")
+              for p in sorted(uncatalogued):
+                  print(f"- {p}")
+              sys.exit(1)
+
+          print(f"✅ All {len(on_disk)} agents catalogued")
+          PY
+
+      - name: Verify SKILL.md references resolve
+        run: |
+          python - <<'PY'
+          import pathlib, re, sys
+
+          root = pathlib.Path(".")
+          text = root.joinpath("SKILL.md").read_text(encoding="utf-8")
+          refs = set(re.findall(r"(?:agents|protocols|templates)/[A-Za-z0-9._-]+\.md", text))
+
+          missing = sorted(p for p in refs if not root.joinpath(p).is_file())
+          if missing:
+              print("::error file=SKILL.md::SKILL.md references files that do not exist")
+              for p in missing:
+                  print(f"- {p}")
+              sys.exit(1)
+
+          print(f"✅ All {len(refs)} SKILL.md references resolve")
+          PY
+
       - name: Check agent line counts (<= 200)
         run: |
           for file in agents/*.md; do

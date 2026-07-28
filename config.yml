@@ -1,74 +1,361 @@
-# Dark Factory Configuration
-# Tunables for the factory pipeline (single source of truth)
+# Dark Factory Configuration — v1.0.0
+# Single source of truth. Never hardcode any of these values in prompts.
+#
+# Conformance target: Shadow Score Spec v2.0 — Level 4 (Adversarial Independence)
+# See protocols/model-independence.md for why model family separation matters.
 
 factory:
-  # Default pipeline mode: "full" (6 phases) or "express" (short goals)
+  # Pipeline mode: "full" (spec -> arch -> build -> validate) or "express" (build -> validate)
   default_mode: full
 
-  # Maximum hardening cycles before escalating to user
-  max_hardening_cycles: 3
+  # How express mode is chosen:
+  #   classifier — a fast model classifies goal complexity (recommended)
+  #   words      — legacy word-count heuristic (imprecise; "refactor auth to OAuth2 with
+  #                PKCE" is 8 words and is NOT an express task)
+  express_detection: classifier
 
-  # Auto-detect express mode for short prompts (< N words)
+  # Only used when express_detection: words
   express_threshold_words: 15
 
-  # Agent execution timeout (seconds)
-  agent_timeout_sec: 300
-
-  # Retry policy (max retries per agent dispatch)
+  # Agent execution timeout (seconds) and retry policy
+  agent_timeout_sec: 900
   max_retries: 1
 
   # Logging verbosity (debug, info, warn, error)
   verbosity: info
 
-safety:
-  # Max lines for PRD generation (guardrail against context overflow)
-  max_prd_lines: 180
+# ---------------------------------------------------------------------------
+# INVARIANTS — hard preconditions. The orchestrator ABORTS at Phase 0 if these
+# are violated. An invariant the orchestrator enforces beats a paragraph in a
+# protocol document.
+# ---------------------------------------------------------------------------
+invariants:
+  # Seal Author and Implementer MUST be different model families.
+  # Same-family pairing means correlated blind spots: if the builder's family
+  # doesn't think to test something, it also doesn't think to handle it. The
+  # sealed test never fires and the Shadow Score is optimistically biased.
+  cross_family_required: true
 
-  # Max lines for any artifact passed between agents (ARCH, GAP reports, etc.)
-  max_artifact_lines: 600
+  # Minimum number of independent model families authoring sealed suites.
+  # >= 2 enables the Phase 1.5 spec-ambiguity gate.
+  seal_plurality_min: 2
+
+  # strict — sealed tests are NEVER written into the builder's workspace.
+  #          Validation runs in a disposable verify worktree.
+  # legacy  — Shadow Score Spec v1.0.0 section 4.3 behaviour (copy-in / delete-after).
+  #           Downgrades reported isolation strength.
+  workspace_isolation: strict
+
+  # When an invariant cannot be satisfied, mark the run's Shadow Score
+  # ADVISORY rather than silently reporting it as authoritative.
+  on_violation: abort   # abort | advisory
+
+# ---------------------------------------------------------------------------
+# MODEL FAMILIES — used to enforce invariants.cross_family_required.
+# The orchestrator resolves each role's model to a family via this map.
+# ---------------------------------------------------------------------------
+families:
+  anthropic: [claude-opus-5, claude-opus-4.8, claude-opus-4.7, claude-opus-4.6,
+              claude-sonnet-5, claude-sonnet-4.6, claude-haiku-4.5]
+  openai: [gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4,
+           gpt-5.3-codex, gpt-5.4-mini, gpt-5-mini]
+  google: [gemini-3.1-pro-preview, gemini-3.6-flash, gemini-3.5-flash]
+  moonshot: [kimi-k2.7-code]
+  microsoft: [mai-code-1-flash-picker]
+
+# ---------------------------------------------------------------------------
+# MODEL CAPABILITIES — not every model accepts every knob. Dispatching an
+# unsupported reasoning_effort or context_tier is a silent failure mode, so
+# the orchestrator validates every role against this map at Phase 0 and CI
+# checks it on every PR.
+#
+#   effort: []  -> the model does not accept reasoning_effort; OMIT the
+#                  parameter entirely rather than passing a default.
+# ---------------------------------------------------------------------------
+model_capabilities:
+  claude-opus-5: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
+  claude-opus-4.8: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
+  claude-opus-4.7: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
+  claude-opus-4.6: {effort: [low, medium, high, max], context: [default, long_context]}
+  claude-sonnet-5: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
+  claude-sonnet-4.6: {effort: [low, medium, high, max], context: [default, long_context]}
+  claude-haiku-4.5: {effort: [], context: [default]}
+  gpt-5.6-sol: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
+  gpt-5.6-terra: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
+  gpt-5.6-luna: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
+  gpt-5.5: {effort: [low, medium, high, xhigh], context: [default, long_context]}
+  gpt-5.4: {effort: [low, medium, high, xhigh], context: [default, long_context]}
+  gpt-5.3-codex: {effort: [low, medium, high, xhigh], context: [default]}
+  gpt-5.4-mini: {effort: [low, medium, high, xhigh], context: [default]}
+  gpt-5-mini: {effort: [low, medium, high], context: [default]}
+  gemini-3.1-pro-preview: {effort: [low, medium, high], context: [default, long_context]}
+  gemini-3.6-flash: {effort: [minimal, low, medium, high], context: [default, long_context]}
+  gemini-3.5-flash: {effort: [minimal, low, medium, high], context: [default, long_context]}
+  kimi-k2.7-code: {effort: [], context: [default]}
+  mai-code-1-flash-picker: {effort: [low, medium, high], context: [default]}
+
+# ---------------------------------------------------------------------------
+# ROLES — model + reasoning effort + context tier, per role.
+#
+# reasoning_effort is the defining 2026 quality lever. Buying quality by
+# swapping the model SKU is the 2025 approach; effort is cheaper and more
+# targeted. Spend it where deep reasoning actually pays:
+#   - Sealed test authoring (adversarial edge-case generation)
+#   - Architecture (one-shot, highest leverage decision in the run)
+#   - Red teaming (attack is a reasoning task)
+# Don't spend it where the work is mechanical (running a test runner).
+# ---------------------------------------------------------------------------
+roles:
+  # Family-assignment rationale (bias direction matters more than "all different"):
+  #   PM family == builder family  -> the builder infers the PM's unstated
+  #     assumptions more easily -> artificially LOW Shadow Score. This overclaims
+  #     quality and is the dangerous direction. FORBIDDEN.
+  #   PM family == sealer family   -> the sealer infers them more easily ->
+  #     artificially HIGH Shadow Score. Conservative; penalises the builder
+  #     slightly but never overclaims. Acceptable, and noted in the report.
+  product_mgr:
+    model: gpt-5.5
+    reasoning_effort: medium
+    context_tier: default
+
+  architect:
+    model: claude-opus-5
+    reasoning_effort: xhigh
+    context_tier: long_context
+
+  arch_critic:
+    # MUST differ in family from architect — a critic that shares the
+    # architect's priors approves the architect's blind spots.
+    model: gpt-5.6-terra
+    reasoning_effort: xhigh
+    context_tier: long_context
+
+  qa_sealed:
+    # MUST differ in family from lead_eng (invariants.cross_family_required).
+    # `max` effort here is the best dollar in the pipeline: a sealed test that
+    # catches a real defect is a one-time cost amortised across every
+    # hardening cycle in the run.
+    model: gpt-5.6-terra
+    reasoning_effort: max
+    context_tier: default
+
+  lead_eng:
+    model: claude-opus-4.8
+    reasoning_effort: medium
+    context_tier: long_context
+
+  qa_validator:
+    # Mechanical: run a test runner, parse output, count. Don't pay to think.
+    model: gemini-3.6-flash
+    reasoning_effort: low
+    context_tier: default
+
+  red_team:
+    model: gpt-5.6-sol
+    reasoning_effort: xhigh
+    context_tier: long_context
+
+  outcome_evaluator:
+    model: claude-sonnet-5
+    reasoning_effort: high
+    context_tier: long_context
+
+  classifier:
+    # Sub-second express/full triage. Replaces the word-count heuristic.
+    model: gemini-3.6-flash
+    reasoning_effort: minimal
+    context_tier: default
+
+# ---------------------------------------------------------------------------
+# PREMIUM — per-role overrides for "dark factory premium — <goal>".
+#
+# v0.1.0 had a single `premium_model` applied to every role. That is now a
+# conformance bug: routing all agents through one flagship model collapses the
+# pipeline into ONE family, so the sealed tests and the code come from the same
+# mind and the Shadow Score silently becomes meaningless. Premium raises the
+# capability of each role WITHIN its assigned family.
+# ---------------------------------------------------------------------------
+premium:
+  product_mgr: {model: gpt-5.6-luna, reasoning_effort: high, context_tier: long_context}
+  architect: {model: claude-opus-5, reasoning_effort: max, context_tier: long_context}
+  arch_critic: {model: gpt-5.6-terra, reasoning_effort: max, context_tier: long_context}
+  qa_sealed: {model: gpt-5.6-terra, reasoning_effort: max, context_tier: long_context}
+  lead_eng: {model: claude-opus-5, reasoning_effort: xhigh, context_tier: long_context}
+  qa_validator: {model: gemini-3.1-pro-preview, reasoning_effort: medium, context_tier: default}
+  red_team: {model: gpt-5.6-sol, reasoning_effort: max, context_tier: long_context}
+  outcome_evaluator: {model: claude-opus-4.8, reasoning_effort: high, context_tier: long_context}
+  classifier: {model: gemini-3.6-flash, reasoning_effort: low, context_tier: default}
+
+# ---------------------------------------------------------------------------
+# SEAL PLURALITY — N independent sealed suites from N model families.
+#
+# Agreement     -> the spec is unambiguous; union the suites for a stronger envelope.
+# Contradiction -> two frontier models read the same spec and reached opposite
+#                  conclusions about correct behaviour. The SPEC is defective,
+#                  and you found out before writing a line of code.
+# ---------------------------------------------------------------------------
+seal_plurality:
+  enabled: true
+  authors:
+    - {model: gpt-5.6-terra, reasoning_effort: max, context_tier: default}
+    - {model: gemini-3.1-pro-preview, reasoning_effort: high, context_tier: default}
+  # Express mode uses a single author to stay fast.
+  express_authors: 1
+
+# ---------------------------------------------------------------------------
+# TOURNAMENT — N parallel implementations from N model families, one sealed
+# envelope, best build wins.
+#
+# You stop choosing a model up front. The sealed envelope chooses the winner,
+# empirically, per task. Model selection becomes an OUTPUT of the pipeline
+# instead of an input to it.
+# ---------------------------------------------------------------------------
+tournament:
+  enabled: false          # opt-in via "dark factory tournament — <goal>"
+  # No competitor may share a family with a seal author. A competitor that
+  # shares the sealer's priors scores artificially well against that sealed
+  # suite — which biases the very model selection the tournament exists to
+  # perform. Seal authors are openai + google, so competitors draw from
+  # anthropic / moonshot / microsoft.
+  competitors:
+    - {model: claude-opus-4.8, reasoning_effort: medium, context_tier: long_context}
+    - {model: kimi-k2.7-code}                    # no effort/context knobs — see model_capabilities
+    - {model: mai-code-1-flash-picker, reasoning_effort: high}
+  enforce_judge_independence: true
+  # If every competitor scores above this, the SPEC is the likely defect —
+  # escalate to spec review instead of burning hardening cycles on the builder.
+  all_fail_spec_review_threshold: 40
+
+# ---------------------------------------------------------------------------
+# HARDENING — escalation ladder.
+#
+# Identical retries are rerolling, not hardening. Each rung escalates model,
+# effort, and context. Rung 3 switches FAMILY: if one family has failed twice,
+# it likely has a blind spot, and a different family sees a different problem.
+# ---------------------------------------------------------------------------
+hardening:
+  max_cycles: 4
+  # Rungs 1-2 escalate raw capability within the builder's family.
+  # Rung 3 escalates DIVERSITY, not capability: after two failures the family
+  #   likely has a blind spot, and a different family sees a different problem.
+  #   It must still avoid seal-author families (openai/google) or the engineer
+  #   starts sharing priors with the tests judging it — teaching to the test
+  #   through model correlation rather than through visibility.
+  # Rung 4 returns maximum capability AND unlocks assertion-level disclosure.
+  ladder:
+    - {model: claude-opus-4.8, reasoning_effort: high, context_tier: default, reveal: failure_messages}
+    - {model: claude-opus-5, reasoning_effort: xhigh, context_tier: long_context, reveal: failure_messages}
+    - {model: kimi-k2.7-code, reveal: failure_messages}   # family switch: moonshot
+    - {model: claude-opus-5, reasoning_effort: max, context_tier: long_context, reveal: assertions}
+
+  # reveal levels — progressive disclosure. NEVER includes test source code.
+  #   failure_messages — test name, expected, actual (Spec v1.0.0 section 4.4 default)
+  #   assertions       — the above plus the assertion text, still not the test body.
+  #                      Turns an unbounded guess into a solvable problem at the
+  #                      last rung without breaking the seal that produced the score.
+  max_reveal: assertions
+
+# ---------------------------------------------------------------------------
+# AUTONOMY — "Lights Out" means autonomous with EVIDENCE, not autonomous with
+# permission. Gates escalate to a human only on threshold breach.
+# ---------------------------------------------------------------------------
+autonomy:
+  # dark       — run end to end; stop only on gate breach or final delivery
+  # supervised — human checkpoint at every phase (v0.1.0 behaviour)
+  # manual     — checkpoint at every phase AND every hardening cycle
+  mode: supervised
+
+  gates:
+    spec_ambiguity_max: 0.25      # Phase 1.5 — sealed-suite disagreement ratio
+    arch_critic_severity: high    # Phase 2.5 — escalate on findings at/above this
+    shadow_score_max: 10          # Phase 4  — sealed failure percentage
+    red_team_high_findings_max: 0 # Phase 4.5 — any high-severity finding stops the line
+    cost_ceiling_usd: 5.00        # any phase — hard stop
+
+  # Delivery ALWAYS requires human approval, in every mode. Not configurable.
+  on_gate_breach: park_and_notify   # park_and_notify | abort
+
+# ---------------------------------------------------------------------------
+# SAFETY — with long_context tiers, routine summarisation is now HARMFUL:
+# it lossy-compresses the contract that both the sealed tests and the
+# implementation derive from, so requirements silently drop out of the middle
+# and the Shadow Score ends up measuring the summariser.
+#
+# These caps are an EMERGENCY BACKSTOP, not a routine step.
+# ---------------------------------------------------------------------------
+safety:
+  summarize_artifacts: false    # v0.1.0 set this on by default
+  max_prd_lines: 2000           # backstop only
+  max_artifact_lines: 5000      # backstop only
+
+  # Acceptance criteria pass through verbatim, ALWAYS. Not configurable.
+  # If a backstop ever fires, the run is flagged spec_truncated and its
+  # Shadow Score is reported as ADVISORY.
 
 isolation:
-  # Workspace root (relative to cwd)
   workspace_root: .factory
-
-  # Branch prefix for worktree branches
   branch_prefix: factory/
-
-  # Sealed test directory (outside worktree)
-  sealed_dir: .factory/sealed
-
-  # State file for crash recovery
   state_file: .factory/state.json
 
-models:
-  # Speed Stack — model routing by role
-  # Options: claude-haiku-4.5, claude-sonnet-4.6, claude-opus-4.6
-  product_mgr: claude-sonnet-4.6
-  architect: claude-sonnet-4.6
-  qa_sealed: claude-sonnet-4.6
-  lead_eng: claude-sonnet-4.6
-  qa_validator: claude-haiku-4.5
-  outcome_evaluator: claude-sonnet-4.6
+  # Sealed tests live OUTSIDE the repo. `.factory/sealed/` sat inside the
+  # builder's world, reachable by its unscoped bash/glob/grep tools.
+  vault_dir: ~/.factory-vault
 
-  # Premium override — when user says "dark factory premium"
-  premium_model: claude-opus-4.6
+  # Disposable worktree where sealed tests are executed. Created from the
+  # builder's commit, destroyed immediately after. The builder's own tree
+  # never contains sealed files at any point — isolation becomes a property
+  # of filesystem topology rather than of prompt wording.
+  verify_dir: .factory/verify
 
-checkpoints:
-  # Which phases get human checkpoints
-  # In express mode, only "delivery" checkpoint is used
-  gates:
-    - after_prd        # Phase 1 → approve spec
-    - after_arch       # Phase 2 → approve architecture
-    - after_build      # Phase 3 → review code
-    - after_validation # Phase 4 → review gap analysis
-    - delivery         # Phase 6 → approve or reject merge
+  # Canary file planted in the vault. Access is logged as a seal break and
+  # forces the run's Shadow Score to INVALID.
+  canary_enabled: true
 
-  # Allow "skip-all" to go fully dark
-  allow_skip_all: true
+# ---------------------------------------------------------------------------
+# LEARNING — cross-run memory via session_store_sql. A pipeline that starts
+# from zero knowledge every run is a workshop, not a factory.
+# ---------------------------------------------------------------------------
+learning:
+  enabled: true
+
+  # Loop A — seed QA Sealed with defect classes that historically escaped
+  # in this repo/stack.
+  blind_spot_memory: true
+  blind_spot_lookback_runs: 20
+
+  # Loop B — route roles by measured Shadow Score performance per stack
+  # instead of by guesswork in this file.
+  empirical_routing: true
+  routing_min_samples: 5
+
+  # Loop C — compare Phase 4 Shadow Score against Phase 7 Outcome Score.
+  # If runs that scored 0% still fail post-ship, the sealed suites are too
+  # shallow: auto-raise qa_sealed effort. The factory tunes its own instruments.
+  calibration: true
+  calibration_min_samples: 3
+
+# ---------------------------------------------------------------------------
+# COST — recorded into the existing phase_results table alongside duration_sec
+# and model_used. Without it, every value in this file is a guess that can
+# never be validated, and `dark factory pareto` has nothing to plot.
+# ---------------------------------------------------------------------------
+cost:
+  track: true
+  ceiling_usd: 5.00
+  on_ceiling: park_and_notify   # park_and_notify | abort
 
 outcome_evaluation:
-  # Auto-trigger evaluation N days after delivery (0 = manual only)
-  auto_evaluate_after_days: 0
-
-  # Archive artifacts for post-ship evaluation
+  auto_evaluate_after_days: 7   # 0 disables; > 0 arms a schedule at delivery
   archive_dir: .factory/archive
+
+# ---------------------------------------------------------------------------
+# REPORTING — Shadow Score Spec conformance.
+# ---------------------------------------------------------------------------
+reporting:
+  spec_version: "2.0.0"
+  conformance_level: 4
+  # Emit machine-readable JSON alongside the markdown report. JSON carries the
+  # section 5.2 required fields and makes Shadow Scores comparable across tools
+  # instead of regex-scraped out of prose.
+  emit_json: true
+  report_basename: SHADOW-REPORT   # -> SHADOW-REPORT.md + SHADOW-REPORT.json

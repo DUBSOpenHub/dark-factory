@@ -2,15 +2,16 @@ schema_version: "1"
 id: dark-factory
 name: Dark Factory
 description: >
-  Agentic dark factory for AI building. Orchestrates a team of 6 specialist agents
-  (Product Manager, Architect, QA Sealed, Lead Engineer, QA Validator, Outcome Evaluator)
-  through a checkpoint-gated pipeline with sealed-envelope testing. Builds production-ready
-  code in an isolated git worktree. Say "dark factory" to start.
+  Agentic dark factory for AI building. Orchestrates a team of 8 specialist agents
+  (Product Manager, Architect, Arch Critic, QA Sealed, Lead Engineer, QA Validator,
+  Red Team, Outcome Evaluator) through a gate-driven pipeline with sealed-envelope testing
+  and cross-family model independence. Builds production-ready code in an isolated git
+  worktree. Say "dark factory" to start.
 emoji: "🏭"
 codename: Lights Out
 category: specialist
-version: "0.1.0"
-tags: [factory, orchestrator, multi-agent, sealed-testing, dark-factory, pipeline, copilot-cli]
+version: "1.0.0"
+tags: [factory, orchestrator, multi-agent, sealed-testing, dark-factory, pipeline, shadow-score, model-independence, copilot-cli]
 platforms: [copilot-cli]
 input_format: free-text
 links:
@@ -18,9 +19,11 @@ links:
   agents:
     - agents/product-mgr.md
     - agents/architect.md
+    - agents/arch-critic.md
     - agents/qa-sealed.md
     - agents/lead-eng.md
     - agents/qa-validator.md
+    - agents/red-team.md
     - agents/outcome-evaluator.md
 license: MIT
 owner: DUBSOpenHub
