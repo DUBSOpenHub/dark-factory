@@ -71,9 +71,11 @@ Note the asymmetry: **not every overlap is equally harmful.** A pairing that bia
 Every report carries its own provenance, so a score can be trusted or discarded on evidence:
 
 ```json
-"independence": "strong",
-"seal_families": ["openai", "google"],
-"implementer_family": "anthropic"
+"report": {
+  "independence": "strong",
+  "seal_author_families": ["openai", "google"],
+  "implementer_family": "anthropic"
+}
 ```
 
 If the invariant is violated and `on_violation: warn` is set, the run continues but every report is stamped ⚠️ **ADVISORY** and is explicitly non-authoritative. See [`protocols/model-independence.md`](protocols/model-independence.md).
@@ -334,7 +336,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 | `autonomy` | `dark`, `supervised`, or `manual` | `supervised` |
 | `current_phase` | Phase identifier (`0`–`7`, including `2.5` and `4.5`) | `3` |
 | `independence` | `strong` or `weak` | `strong` |
-| `seal_families` | Families that authored the envelope | `["openai","google"]` |
+| `seal_author_families` | Families that authored the envelope | `["openai","google"]` |
 | `sealed_hash` | Integrity check for hidden tests | `sha256:d3b1...` |
 | `initial_shadow_score` | First validation, before any hardening | `22.2` |
 | `gates` | Measured value, threshold, and status per gate | `{ "shadow_score": { "value": 4.0, ... } }` |

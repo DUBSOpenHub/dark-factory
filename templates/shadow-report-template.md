@@ -101,19 +101,20 @@ orchestrator can parse it.
 ```json
 {
   "shadow_score_spec_version": "2.0.0",
-  "conformance_level": 4,
   "report": {
     "id": "run-20260728-1030",
     "timestamp": "2026-07-28T10:30:00Z",
     "specification": "PRD.md",
     "shadow_score": 11.1,
     "level": "minor",
+    "conformance_level": 4,
     "sealed_hash": "sha256:a1b2c3d4",
     "independence": "strong",
     "seal_author_models": ["gpt-5.6-terra", "gemini-3.1-pro-preview"],
-    "seal_families": ["openai", "google"],
+    "seal_author_families": ["openai", "google"],
     "implementer_model": "claude-opus-4.8",
     "implementer_family": "anthropic",
+    "workspace_isolation": "strict",
     "spec_ambiguity": 0.06,
     "seal_broken": false,
     "spec_truncated": false
@@ -156,7 +157,7 @@ orchestrator can parse it.
 | `failures[]` | ✅ | `test_name`, `expected`, `actual`, `message` |
 | `report.sealed_hash` | RECOMMENDED | Tamper evidence |
 | `report.independence` | ✅ (Level 4) | `strong` or `weak` |
-| `report.seal_families` / `implementer_family` | ✅ (Level 4) | Provenance |
+| `report.seal_author_families` / `implementer_family` | ✅ (Level 4) | Provenance |
 | `hardening.hardening_velocity` | ✅ (Level 3) | `(initial − final) / cycles` |
 | `open_tests.*` | RECOMMENDED | |
 | `coverage_comparison` | OPTIONAL | Turns a number into a diagnosis |

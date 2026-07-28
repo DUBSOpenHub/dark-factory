@@ -168,7 +168,7 @@ Before submitting changes, verify:
 - [ ] 🧬 Seal author and implementer are in **different** families
 - [ ] 🧬 A same-family config aborts the run (or warns, per `invariants.on_violation`)
 - [ ] 🧬 Every dispatch omits `reasoning_effort` / `context_tier` for models that lack them
-- [ ] 🧬 `independence` and `seal_families` appear in SHADOW-REPORT.json
+- [ ] 🧬 `independence` and `seal_author_families` appear in SHADOW-REPORT.json
 
 **Sealed envelope**
 

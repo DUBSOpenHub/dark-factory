@@ -142,4 +142,4 @@ Not every model accepts `reasoning_effort` or `context_tier` (`kimi-k2.7-code` a
 Every `agents/*.md` must appear in `catalog.yml` under `links.agents`. CI fails otherwise.
 
 ### 7. Reporting a Shadow Score without provenance
-`SHADOW-REPORT.json` must carry `independence`, `seal_families`, and `implementer_family`. A score without provenance can't be trusted or reproduced, and a `weak` score must be stamped ADVISORY.
+`SHADOW-REPORT.json` must carry `independence`, `seal_author_families`, and `implementer_family`. A score without provenance can't be trusted or reproduced, and a `weak` score must be stamped ADVISORY.

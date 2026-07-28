@@ -45,19 +45,20 @@ contract; the markdown is a rendering of it. Required fields:
 ```json
 {
   "shadow_score_spec_version": "2.0.0",
-  "conformance_level": 4,
   "report": {
     "id": "<run_id>",
     "timestamp": "<ISO-8601>",
     "specification": "PRD.md",
     "shadow_score": 11.1,
     "level": "minor",
+    "conformance_level": 4,
     "sealed_hash": "sha256:...",
     "independence": "strong",
     "seal_author_models": ["gpt-5.6-terra", "gemini-3.1-pro-preview"],
-    "seal_families": ["openai", "google"],
+    "seal_author_families": ["openai", "google"],
     "implementer_model": "claude-opus-4.8",
-    "implementer_family": "anthropic"
+    "implementer_family": "anthropic",
+    "workspace_isolation": "strict"
   },
   "sealed_tests": {"total": 18, "passed": 16, "failed": 2},
   "open_tests": {"total": 12, "passed": 12, "failed": 0},

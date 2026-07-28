@@ -126,13 +126,19 @@ Every Shadow Score report carries provenance:
 
 ```json
 {
-  "independence": "strong",
-  "seal_author_models": ["gpt-5.6-terra", "gemini-3.1-pro-preview"],
-  "seal_families": ["openai", "google"],
-  "implementer_model": "claude-opus-4.8",
-  "implementer_family": "anthropic"
+  "report": {
+    "independence": "strong",
+    "seal_author_models": ["gpt-5.6-terra", "gemini-3.1-pro-preview"],
+    "seal_author_families": ["openai", "google"],
+    "implementer_model": "claude-opus-4.8",
+    "implementer_family": "anthropic"
+  }
 }
 ```
+
+These live under `report.*`, per Shadow Score Spec §5.2. Depth matters: a provenance field
+written at the document root is not present as far as a validator is concerned, so the Level 4
+check silently never runs and the report claims a conformance level nobody verified.
 
 Without these fields a Shadow Score is a bare number with no provenance, and you cannot
 distinguish *"genuinely clean"* from *"the same model graded its own homework through a

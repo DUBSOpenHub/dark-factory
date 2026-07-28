@@ -12,6 +12,7 @@ Checks:
   8. arch_critic differs in family from architect.
   9. red_team differs in family from the implementer.
  10. premium overrides preserve every independence invariant.
+ 11. documented report contract matches Spec section 5.2 field paths.
 """
 import sys
 import pathlib
@@ -174,6 +175,54 @@ def main() -> int:
                     f"'{fam(cfg['roles'][role])}' -> '{fam(prem[role])}'. "
                     f"Premium should raise capability within a role's family, not move it."
                 )
+
+    # --- 11: report contract matches Spec section 5.2 field paths ---------
+    # A provenance field at the wrong depth is not present as far as a
+    # validator is concerned, so the Level 4 check silently never runs and the
+    # report claims a level nobody verified. Guard the documented contract.
+    import json
+    import re
+
+    root_only = {"shadow_score_spec_version", "report", "sealed_tests",
+                 "open_tests", "failures", "coverage_comparison", "hardening"}
+    must_nest = {"shadow_score", "level", "conformance_level", "independence",
+                 "implementer_family", "seal_author_families", "advisory"}
+    l4_required = {"independence", "implementer_family", "seal_author_families"}
+    renamed = {"seal_families": "seal_author_families"}
+
+    contracts = [
+        root / "agents" / "qa-validator.md",
+        root / "templates" / "shadow-report-template.md",
+    ]
+    for path in contracts:
+        if not path.exists():
+            err(f"missing report contract file: {path.relative_to(root)}")
+            continue
+        rel = path.relative_to(root)
+        for block in re.findall(r"```json\n(.*?)```", path.read_text(encoding="utf-8"), re.S):
+            if '"shadow_score_spec_version"' not in block:
+                continue
+            try:
+                doc = json.loads(block)
+            except json.JSONDecodeError as exc:
+                err(f"{rel}: report contract is not valid JSON: {exc}")
+                continue
+            report = doc.get("report", {})
+            for old, new in renamed.items():
+                if old in report or old in doc:
+                    err(f"{rel}: '{old}' was renamed to '{new}' in Spec v2.0 section 5.2")
+            for field in sorted(must_nest & set(doc)):
+                err(
+                    f"{rel}: '{field}' must live at report.{field}, not the document root "
+                    f"(Spec section 5.2) — at the root it is invisible to the Level 4 check"
+                )
+            for field in sorted(root_only & set(report)):
+                err(f"{rel}: '{field}' belongs at the document root, not under report")
+            missing = sorted(l4_required - set(report))
+            if missing:
+                err(f"{rel}: report contract omits Level 4 provenance: {missing}")
+            if report.get("independence") == "weak" and not report.get("advisory"):
+                err(f"{rel}: weak independence must be stamped advisory (Spec section 5.4)")
 
     for w in WARNINGS:
         print(f"::warning::{w}")

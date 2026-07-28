@@ -49,7 +49,7 @@ overclaiming quality.** v1.0 makes cross-family separation a machine-checked inv
 - **Cost tracking.** Token and dollar cost per phase in `phase_results`, plus a cost ceiling
   gate. Without it, every tunable in `config.yml` is a guess that can never be validated.
 - **`SHADOW-REPORT.json`.** Machine-readable output carrying the Spec §5.2 required fields
-  plus provenance (`independence`, `seal_families`, `implementer_family`), so scores are
+  plus provenance (`independence`, `seal_author_families`, `implementer_family`), so scores are
   comparable across tools instead of regex-scraped out of prose.
 - **`hardening_velocity`.** `(initial − final) / cycles`, a Level 3 conformance requirement
   that was previously **uncomputable** because only the final score was stored.

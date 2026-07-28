@@ -33,7 +33,7 @@ This repository contains **Dark Factory**, a GitHub Copilot CLI skill that orche
 - Exposing sealed test contents to the user before Phase 4.
 - Passing sealed test source code into any builder/hardening prompt.
 - Leaking test source, function names, or fixtures through `AMBIGUITY.md`.
-- Reporting a Shadow Score without `independence` and `seal_families` provenance.
+- Reporting a Shadow Score without `independence` and `seal_author_families` provenance.
 - Passing `reasoning_effort` or `context_tier` to a model that does not support it — check `config.model_capabilities` and omit.
 - Editing user files outside the factory worktree.
 
