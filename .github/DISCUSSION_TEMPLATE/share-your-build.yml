@@ -23,7 +23,9 @@ body:
       description: "Which mode did you use?"
       options:
         - Full Pipeline
+        - Dark (autonomous)
         - Express
+        - Tournament
         - Premium
     validations:
       required: true
@@ -34,6 +36,17 @@ body:
       label: "Shadow Score"
       description: "What was the final shadow score?"
       placeholder: "e.g., 0%, 5%, 15%"
+    validations:
+      required: false
+
+  - type: input
+    id: independence
+    attributes:
+      label: "Model independence"
+      description: >
+        Which families authored the sealed tests, and which built the code? A score
+        from same-family pairing is advisory only.
+      placeholder: "e.g., seals: openai + google | implementer: anthropic"
     validations:
       required: false
 
