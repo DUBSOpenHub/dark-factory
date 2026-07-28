@@ -7,6 +7,9 @@
 ![Platform: Copilot CLI](https://img.shields.io/badge/platform-Copilot%20CLI-232F3E.svg)
 ![Language: Markdown](https://img.shields.io/badge/written%20in-Markdown-000000.svg)
 [![Shadow Score Spec](https://img.shields.io/badge/Shadow%20Score-Spec%20v2.0%20%7C%20Level%204-brightgreen.svg)](https://github.com/DUBSOpenHub/shadow-score-spec)
+[![Website](https://img.shields.io/badge/website-dark--factory-1F6FEB.svg)](https://dubsopenhub.github.io/dark-factory/)
+
+**🌐 [dubsopenhub.github.io/dark-factory](https://dubsopenhub.github.io/dark-factory/)**
 
 Dark Factory is a GitHub Copilot CLI skill that turns a short free-text goal into a production-grade pull request. It isolates the work in a disposable git worktree, orchestrates eight specialist agents drawn from **different model families**, and measures quality with [sealed-envelope testing](https://github.com/DUBSOpenHub/shadow-score-spec) — builders never see the hidden acceptance suite that judges them, and the suite is never written by a mind that thinks like theirs.
 
@@ -431,6 +434,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow (branch naming, tes
 
 ## License
 Released under the [MIT License](LICENSE) © 2026 DUBSOpenHub.
+
+## Links
+- 🌐 **Website** — [dubsopenhub.github.io/dark-factory](https://dubsopenhub.github.io/dark-factory/)
+- 📐 **Shadow Score Spec** — [DUBSOpenHub/shadow-score-spec](https://github.com/DUBSOpenHub/shadow-score-spec)
+- 📓 **Changelog** — [CHANGELOG.md](CHANGELOG.md)
+- 🏷️ **Releases** — [github.com/DUBSOpenHub/dark-factory/releases](https://github.com/DUBSOpenHub/dark-factory/releases)
 
 ---
 
