@@ -44,9 +44,10 @@ family, per `config.seal_plurality.authors` — each:
    - `security` — injection, overflow, unauthorized access, data leakage
 4. Write test files to `<config.isolation.vault_dir>/<run-id>/suite-<i>/`
 
-The orchestrator then computes SHA-256 per suite plus a combined hash, stores them in
+The orchestrator then computes SHA-256 per suite using the relative-path recipe in SKILL.md
+Phase 2c, plus a combined hash, stores them in
 `state.json` and the `sealed_suites` table as tamper evidence, and destroys each agent's
-context.
+context. Record each suite's positive expected executable-test count and file count.
 
 **The vault lives outside the repository.** `.factory/sealed/` sat inside the builder's world,
 reachable by its unscoped `bash`/`glob`/`grep` tools; the only thing preventing access was a
@@ -57,8 +58,8 @@ wording.
 
 Because the suites are independent, their **disagreement is diagnostic**:
 
-- **Agreement** → the specification is unambiguous. Union the suites into one envelope,
-  deduplicating by behavior and keeping the strictest assertion.
+- **Agreement** → the specification is unambiguous. Keep all immutable suites in one envelope;
+  deduplicate only coverage summaries, never sealed files or execution counts.
 - **Contradiction** → two frontier models from different families read the same specification
   and reached opposite conclusions about correct behavior. **The specification is defective.**
 
@@ -86,10 +87,16 @@ The Engineer agent:
    Shadow Score is INVALID and the run aborts.
 2. Check the canary file's access time. A read → **seal break**: Shadow Score INVALID.
 3. Commit the builder's work and create a **disposable verify worktree** from that commit.
-4. Copy sealed tests into the *verify* worktree — never into the builder's.
-5. Run BOTH suites.
-6. Compute Shadow Score: `sealed_failures / sealed_total × 100`
-7. Produce `SHADOW-REPORT.md` **and** `SHADOW-REPORT.json`
+4. Copy each suite into its own `sealed/suite-<i>/` directory in the *verify* worktree, never
+   the builder's. Before execution, verify file counts and hashes using the same relative-path
+   recipe; relocation alone must not change a digest.
+5. Run open tests excluding `sealed/`, then execute each sealed suite separately.
+6. Only score complete execution: positive matching expected/discovered/executed counts,
+   matching hashes, and no skips, setup/collection/runner errors, timeout, or unknown result.
+   Assertion failures count as executed failures. Otherwise write only
+   `SHADOW-EXECUTION-ERROR.md`, emit `SHADOW_SCORE: INVALID`, and stop before hardening/delivery.
+7. For complete execution, compute `sealed_failures / sealed_total × 100` and produce
+   `SHADOW-REPORT.md` **and** `SHADOW-REPORT.json`
    (see `templates/shadow-report-template.md`).
 8. Destroy the verify worktree.
 

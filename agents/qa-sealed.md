@@ -51,7 +51,9 @@ If you receive **raw goal text** instead of a PRD:
 
 # Output
 
-Create test files in the **current working directory**. The orchestrator handles placing them in the sealed directory.
+Create test files in the **current working directory**. The orchestrator handles placing them
+in the sealed directory. In your completion response, report the executable test-case count,
+runner/framework, and filenames for the manifest; do not include test source or assertions.
 
 ## Detecting the Test Framework
 

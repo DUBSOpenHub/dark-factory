@@ -110,6 +110,9 @@ Example snippets:
 | 5 | Verify | Verify worktree is removed after validation; build worktree never contained sealed tests |
 | 6 | Verify | Canary file untouched — `seal_broken: false` in SHADOW-REPORT.json |
 | 7 | If gaps exist | Hardening shows failure messages only (no test code) |
+| 8 | With two suites containing the same filename | Both author-scoped copies remain present and are executed separately |
+| 9 | Force zero tests, a skip, setup error, timeout, count/hash mismatch, or unknown result | No Shadow Report or numeric score; `SHADOW-EXECUTION-ERROR.md` and `SHADOW_SCORE: INVALID` |
+| 10 | Copy an unchanged suite, then change one copied test | Relative-path hash is stable after copying; the changed test produces a hash mismatch |
 
 ### Playbook 4: Resume After Crash
 
@@ -149,12 +152,14 @@ Example snippets:
 | Step | You Say | Expected |
 |------|---------|----------|
 | 1 | Complete Phase 4 with Shadow Score > 0% | Hardening begins |
-| 2 | *(cycle 1)* | Same agent continues via `write_agent` — context preserved, no re-briefing |
-| 3 | *(cycle 2)* | Effort escalates per `hardening.ladder` |
-| 4 | *(cycle 3)* | Model switches family per the ladder; still never the seal author's family |
+| 2 | *(cycle 1)* | Reuse via `write_agent` only if the saved agent is live and the full model/effort/context tuple matches |
+| 3 | *(cycle 2)* | If effort or context changes, a new engineer receives a bounded sealed-safe handoff |
+| 4 | *(cycle 3)* | If the model changes family, dispatch a new engineer; still never use a seal-author family |
 | 5 | *(final rung)* | `reveal: assertions` — failing assertions shown, suite source still withheld |
 | 6 | *(after max cycles)* | Escalation: continue-hardening / deliver-as-is / abort |
 | 7 | Verify | `hardening_velocity` reported; `initial_shadow_score` recorded before cycle 1 |
+| 8 | Configure a rung with a different effort/context but same model | New engineer is dispatched; no tuple mismatch is sent to the old agent |
+| 9 | Mark the saved engineer completed/failed or make liveness unknown | New engineer is dispatched with a bounded sealed-safe handoff |
 
 ---
 
@@ -176,6 +181,8 @@ Before submitting changes, verify:
 - [ ] 🔒 SHA-256 hash of the sealed envelope displayed at Phase 2
 - [ ] 🔒 Vault is at `~/.factory-vault/`, outside the build worktree
 - [ ] 🔒 Validation runs in a disposable verify worktree, removed afterwards
+- [ ] 🔒 Each `sealed/suite-<i>/` directory is copied and executed separately; same-named files do not overwrite
+- [ ] 🔒 Any incomplete/unknown sealed-suite execution prevents a numeric score and delivery
 - [ ] 🔒 Canary untouched → `seal_broken: false`
 - [ ] 🔒 Hardening sends failure messages only (test source never revealed)
 
@@ -207,9 +214,16 @@ Before submitting changes, verify:
 
 ## Validation commands
 
+The regression suite covers partial premium inheritance, configured full-mode author plurality,
+relocation-stable suite hashes, isolated namespaces, the live engineer tuple contract, and
+invalid AI-credit conversion rates. During live playbooks, preserve actual usage evidence:
+`totalNanoAiu / 1e9` gives AI credits; multiply by `cost.usd_per_ai_credit` for USD-equivalent
+usage. Unknown usage must stop the run, not become a fabricated zero-cost passing gate.
+
 ```bash
 # Level 4 conformance — families, capabilities, plurality, gates
 python3 .github/scripts/validate_conformance.py
+python3 .github/scripts/validate_conformance.py --self-test
 
 # YAML syntax (Ruby has YAML built-in)
 ruby -e 'require "yaml"; YAML.load_file("catalog.yml"); YAML.load_file("config.yml")'

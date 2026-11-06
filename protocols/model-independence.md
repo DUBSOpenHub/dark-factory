@@ -83,7 +83,11 @@ The rule is not "everything must differ." It is: **never allow a correlation tha
 score downward.** Upward bias is conservative — it penalises the builder slightly and is
 disclosed in the report. Downward bias silently ships defects.
 
-`.github/scripts/validate_conformance.py` checks every pair on each PR.
+`.github/scripts/validate_conformance.py` checks every pair on each PR. It resolves
+the default and premium role overlays independently, then checks each configured
+tournament competitor and hardening rung against that profile's complete seal set.
+It also checks each builder variant against the profile's Product Manager and Red
+Team; validating only `roles.lead_eng` would leave alternate dispatch paths unguarded.
 
 ## Seal Plurality
 
@@ -117,8 +121,10 @@ The orchestrator resolves models to families via `config.families`. Selection gu
 3. **Validator: cheapest capable model.** It runs a test runner and parses output. Do not pay
    it to think.
 4. **Check `config.model_capabilities` before dispatch.** Not every model accepts
-   `reasoning_effort` or `long_context`; passing an unsupported parameter is a silent failure
-   mode.
+   `reasoning_effort` or `long_context`; omit unsupported parameters. Model access
+   can depend on the user's account or plan. A dispatch failure must stop with the
+   configured model and error; do not silently substitute a model, since that can
+   invalidate family-independence guarantees.
 
 ## Reporting
 

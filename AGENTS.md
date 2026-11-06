@@ -6,7 +6,7 @@ This file tells any AI agent how to work effectively on the Dark Factory codebas
 
 ## Architecture
 
-Dark Factory is a **Copilot CLI skill** that orchestrates 8 specialist agents through a gate-driven pipeline with sealed-envelope testing and **cross-family model independence** (Shadow Score Spec v2.0, Level 4).
+Dark Factory is a **GitHub Copilot CLI skill** that orchestrates 8 specialist agents through a gate-driven pipeline with sealed-envelope testing and **cross-family model independence** (Shadow Score Spec v2.0, Level 4).
 
 ```
 SKILL.md (Factory Manager / Orchestrator)
@@ -20,7 +20,7 @@ SKILL.md (Factory Manager / Orchestrator)
   └── agents/outcome-evaluator.md → Phase 7: post-ship outcomes + calibration
 ```
 
-Each agent is called via `task()` with explicit inputs. Agents are stateless — they receive ONLY what the handoff manifest specifies. Phase 5 is the exception: hardening continues the **same** agent via `write_agent`, so accumulated context is preserved across cycles.
+Each agent is called via `task()` with explicit inputs and receives ONLY what the handoff manifest specifies. Phase 5 reuses an engineer via `write_agent` only when its status is confirmed live and its complete model/effort/context tuple is unchanged. Otherwise, dispatch a new engineer with a bounded, sealed-safe handoff.
 
 ---
 

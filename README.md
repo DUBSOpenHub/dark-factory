@@ -167,35 +167,35 @@ Dark Factory reads `config.yml` on every run and never hardcodes tunables. Run `
 | `on_violation` | `abort` | `abort` or `advisory` (run continues, report stamped ⚠️ ADVISORY). |
 
 ### `families` / `model_capabilities`
-`families` maps every model to a family so invariants can be evaluated. `model_capabilities` records which knobs each model actually accepts — several models take no `reasoning_effort` at all, and passing one anyway is a silent failure. The orchestrator **omits** unsupported parameters rather than downgrading them, and CI validates every configured dispatch against this map.
+`families` maps every configured model to a family so invariants can be evaluated. `model_capabilities` records documented `reasoning_effort` and `context_tier` controls; the orchestrator **omits** unsupported parameters. The registry was reviewed against the public GitHub Copilot CLI model reference on November 5, 2026. Model access remains account- and plan-dependent: Phase 0 must stop clearly if a configured model cannot be dispatched, never silently substitute another family. These defaults are not quality rankings; validate quality claims with benchmarks.
 
 ### `roles` — model + effort + context tier, per role
 | Role | Default | Effort | Why |
 |------|---------|--------|-----|
-| `product_mgr` | `gpt-5.5` | `medium` | PRD author. |
-| `architect` | `claude-opus-5` | `xhigh` | Highest-leverage one-shot decision in the run. |
-| `arch_critic` | `gpt-5.6-terra` | `xhigh` | Must differ in family from `architect`. |
-| `qa_sealed` | `gpt-5.6-terra` | `max` | Must differ in family from `lead_eng`. Best dollar in the pipeline. |
-| `lead_eng` | `claude-opus-4.8` | `medium` | Builder + hardening. |
-| `qa_validator` | `gemini-3.6-flash` | `low` | Mechanical — runs a test runner and counts. Don't pay to think. |
-| `red_team` | `gpt-5.6-sol` | `xhigh` | Attack is a reasoning task. Must differ from `lead_eng`. |
-| `outcome_evaluator` | `claude-sonnet-5` | `high` | Phase 7 analyst. |
-| `classifier` | `gemini-3.6-flash` | `minimal` | Sub-second express/full triage. |
+| `product_mgr` | `gpt-6.1-sol` | `medium` | PRD author. |
+| `architect` | `claude-opus-5.5` | `xhigh` | High-leverage one-shot decision. |
+| `arch_critic` | `gpt-6-astra` | `high` | Must differ in family from `architect`. |
+| `qa_sealed` | `gpt-6-astra` | `xhigh` | Must differ in family from `lead_eng`. |
+| `lead_eng` | `claude-sonnet-5.5` | `high` | Builder + hardening. |
+| `qa_validator` | `gemini-3.8-flash` | omitted | Mechanical test execution and counting. |
+| `red_team` | `gpt-6.1-sol` | `xhigh` | Attack is a reasoning task; must differ from `lead_eng`. |
+| `outcome_evaluator` | `claude-sonnet-5.5` | `high` | Phase 7 analyst. |
+| `classifier` | `claude-haiku-5.5` | omitted | Fast express/full triage. |
 
-> `reasoning_effort` is the cost lever that matters. Buying quality by swapping the model SKU is the 2025 move; effort is cheaper and far more targeted. Spend it on sealed test authoring, architecture, and red teaming — not on running a test runner.
+Reasoning and context settings are explicit capabilities, not quality guarantees. Spend deeper reasoning on sealed test authoring, architecture, and red teaming; omit unsupported controls and benchmark before claiming one profile performs better.
 
 ### `seal_plurality`
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `enabled` | `true` | Author N sealed suites from N families. |
-| `authors` | `gpt-5.6-terra`, `gemini-3.1-pro-preview` | One entry per independent suite. |
+| `authors` | `gpt-6-astra`, `gemini-3.8-flash` | One entry per independent suite. |
 | `express_authors` | `1` | Express uses a single author to stay fast. |
 
 ### `tournament`
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `enabled` | `false` | Opt in per run with `dark factory tournament`. |
-| `competitors` | anthropic / moonshot / microsoft | No competitor may share a family with a seal author. |
+| `competitors` | anthropic / moonshot / xai | No competitor may share a family with a seal author. |
 | `enforce_judge_independence` | `true` | CI-checked. |
 | `all_fail_spec_review_threshold` | `40` | If every competitor scores above this, the **spec** is the defect — escalate instead of hardening. |
 
@@ -290,11 +290,11 @@ dark factory tournament — build a CSV import CLI with validation
 ```
 Expected output snippet:
 ```
-🏭 Mode: TOURNAMENT | 3 competitors: anthropic, moonshot, microsoft
+🏭 Mode: TOURNAMENT | 3 competitors: anthropic, moonshot, xai
 🏭 Sealed envelope written BEFORE any competitor started: sha256:9f3c1a
-🥇 claude-opus-4.8   5.6%  $1.90
+🥇 claude-sonnet-5.5 5.6%  $1.90
 🥈 kimi-k2.7-code   11.1%  $0.60
-🥉 mai-code-1-flash 22.2%  $0.20
+🥉 grok-4.7         22.2%  $0.20
 ⚠️  test_rejects_path_traversal failed for ALL competitors → spec defect, not a model defect
 ```
 Model selection stops being folklore and becomes an **output** of the pipeline. The failure-overlap table is the real product: when every competitor fails the same test, no amount of model swapping will fix it.
@@ -314,7 +314,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 
 ## Architecture Overview
 - **Factory Manager (SKILL.md):** Loads config, enforces the Phase 0 invariants, determines mode, and routes each `task()` call to the right model with the right `reasoning_effort` and `context_tier` — omitting parameters the model doesn't support.
-- **Agent Team (8):** Product Manager → QA Sealed ×N & Architect (parallel) → Arch Critic → Lead Engineer → QA Validator → Red Team → Outcome Evaluator. Agents are stateless and receive only what the handoff manifest passes. The exception is hardening, which continues the **same** engineer via `write_agent` so it never re-tries an approach it already ruled out.
+- **Agent Team (8):** Product Manager → QA Sealed ×N & Architect (parallel) → Arch Critic → Lead Engineer → QA Validator → Red Team → Outcome Evaluator. Agents receive only what the handoff manifest passes. Hardening reuses an engineer only when it is confirmed live and the full model/effort/context tuple is unchanged; otherwise a new engineer receives a bounded, sealed-safe handoff.
 - **Agent types:** the pipeline uses purpose-built CLI agent types rather than making everything `general-purpose` — `rubber-duck` for the Arch Critic, `security-review` for the Red Team, `task` for the QA Validator, `explore` for complexity triage.
 - **Isolation:** Every run lives in `.factory/runs/<run-id>`. Sealed tests live in `~/.factory-vault/<run-id>`, **outside the repository**, and are executed in a throwaway worktree. The builder's tree never contains sealed files at any point.
 - **Independence:** Every role resolves to a model family. Seal authors and the implementer may never share one. Enforced at Phase 0 and in CI.
@@ -327,7 +327,7 @@ If `auto_evaluate_after_days > 0`, the factory will prompt you when a run is due
 2. **Ambiguity check (Phase 2.5a):** Suites are compared for contradictions. Contradictions mean the *spec* is ambiguous and gate the run; divergences are the healthy coverage dividend of plurality.
 3. **Hashing:** The Factory Manager records a SHA-256 hash over the merged envelope and stores it in `state.json`.
 4. **Vault storage:** Files live in `~/.factory-vault/<run-id>` (mode `700`) with a canary file — **outside the repository**, because the builder's `bash`/`glob`/`grep` are unscoped and anything inside its worktree is reachable regardless of what the prompt says.
-5. **Execution (Phase 4):** A disposable worktree is created from the engineer's commit, both suites run there, and the worktree is destroyed. Sealed tests are never written into the builder's workspace — not even temporarily.
+5. **Execution (Phase 4):** A disposable worktree is created from the engineer's commit; each sealed author suite is copied and executed in its own `sealed/suite-<i>/` directory, then the worktree is destroyed. Same-named files cannot overwrite one another. A missing, skipped, empty, errored, timed-out, hash-mismatched, or unknown sealed execution produces no numeric Shadow Score or delivery decision.
 6. **Integrity:** A canary atime change sets `seal_broken: true` and invalidates the score.
 7. **Archive:** On delivery approval, sealed files plus PRD/ARCH/SHADOW/RED-TEAM reports are archived under `.factory/archive/<run-id>` for outcome evaluation.
 

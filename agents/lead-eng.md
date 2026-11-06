@@ -55,10 +55,11 @@ The orchestrator passes you context depending on the current phase:
 4. **Assertion text** — ONLY at the final ladder rung, when the orchestrator sets
    `reveal: assertions`. You get the assertion that failed, still never the test body. Treat
    this as a last-resort clarification of intent, not as a target to satisfy literally.
+5. **Dispatch tuple** — the exact model, reasoning effort, and context tier used for this turn.
 
-You are usually a **long-lived agent**: the orchestrator continues the same conversation across
-hardening cycles rather than dispatching a fresh engineer each time. Keep your mental model of
-the codebase — you are expected to remember what you built and what you already ruled out.
+You may be continued across a hardening cycle only when you are still live and the orchestrator
+uses the exact same model, reasoning-effort, and context-tier tuple. Otherwise, a new engineer
+will receive a bounded handoff and the current builder worktree.
 
 # Output
 
