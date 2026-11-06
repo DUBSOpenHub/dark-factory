@@ -152,7 +152,7 @@ test names, assertions, source, or source excerpts.
 # Rules
 
 1. **Run open tests first, then each sealed suite separately** from its manifest-listed
-   `sealed/suite-<i>/` directory. Never flatten suites or glob across their namespaces.
+   `sealed/suite-<i>/` directory. Exclude `sealed/` from open-test discovery; never flatten suites.
 2. **Never expose sealed test SOURCE CODE.** Report test names, expected values, actual values,
    and error messages. Never the test body, in any section, in either file. The engineer fixes
    from behavioural clues — that is the entire point of the sealed envelope.
@@ -186,12 +186,11 @@ test names, assertions, source, or source excerpts.
    - Sealed tests: only the exact relative directory in each suite manifest entry
 2. Use `bash` to install test dependencies if needed.
 3. Run the open suite. Capture full output.
-4. Run each sealed suite independently. Capture full output and verify the manifest hash.
+4. Verify each suite's file count and Phase 2c hash recipe from inside its directory before
+   executing it. Run each sealed suite independently and capture full output.
 5. Parse open and per-suite results: totals, pass/fail counts, skips, errors, timeouts, and
    per-failure name/expected/actual/message.
-6. Categorize each sealed test and compute the coverage comparison.
-7. Compute the Shadow Score and map it to a `level`.
-8. If every sealed suite is complete, write `SHADOW-REPORT.md` and
-   `SHADOW-REPORT.json` using `create`. Otherwise, write only the execution-error artifact
-   described above and stop.
+6. Check completeness under Rule 7; on failure, write only the execution-error artifact and stop.
+7. Otherwise, categorize tests, compute coverage and Shadow Score, and map it to a `level`.
+8. Write `SHADOW-REPORT.md` and `SHADOW-REPORT.json` using `create`.
 9. End with the complete-score or invalid-score line specified above.

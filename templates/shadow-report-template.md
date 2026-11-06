@@ -85,8 +85,6 @@ Machine-readable failure summary for the Lead Engineer:
     - test_name: expected <X>, got <Y>
     - test_name: raised ErrorType("message")
 
-## Setup Issues
-_Only if a suite could not run. A suite that did not run is not a suite that passed._
 ```
 
 Only complete sealed execution may produce these Shadow Report files and a numeric score. If

@@ -3,9 +3,11 @@
 import argparse
 import copy
 import json
+import math
 import pathlib
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -265,7 +267,8 @@ def validate_config(
     for role, spec in premium.items():
         if role not in roles:
             err(f"premium.{role} has no matching default role")
-        check_dispatch(f"premium.{role}", spec)
+        if not _is_mapping(spec):
+            err(f"premium.{role} must be a model dispatch object")
 
     plurality_value = cfg.get("seal_plurality")
     plurality = plurality_value if _is_mapping(plurality_value) else {}
@@ -310,6 +313,16 @@ def validate_config(
         err("invariants.seal_plurality_min must be a positive integer")
         min_families = 1
 
+    cost = cfg.get("cost")
+    credit_rate = cost.get("usd_per_ai_credit") if _is_mapping(cost) else None
+    if (
+        isinstance(credit_rate, bool)
+        or not isinstance(credit_rate, (int, float))
+        or not math.isfinite(credit_rate)
+        or credit_rate <= 0
+    ):
+        err("cost.usd_per_ai_credit must be a finite positive number")
+
     profiles: list[tuple[str, dict[str, object]]] = []
     default_roles = {role: roles.get(role) for role in REQUIRED_ROLES}
     profiles.append(("default", default_roles))
@@ -326,16 +339,20 @@ def validate_config(
         for role, spec in profile_roles.items():
             check_dispatch(f"{profile_name}.roles.{role}", spec)
 
+        plurality_families = {
+            resolved for resolved in (family(spec) for spec in authors)
+            if resolved is not None
+        }
         seal_specs = [*authors, profile_roles.get("qa_sealed")]
         seal_families = {
             resolved for resolved in (family(spec) for spec in seal_specs)
             if resolved is not None
         }
-        if plurality_enabled and len(seal_families) < min_families:
+        if plurality_enabled and len(plurality_families) < min_families:
             err(
                 f"{profile_name}: invariants.seal_plurality_min={min_families} "
-                f"but only {len(seal_families)} seal family/families configured: "
-                f"{sorted(seal_families)}"
+                f"but only {len(plurality_families)} full-mode seal author "
+                f"family/families configured: {sorted(plurality_families)}"
             )
 
         pm_family = family(profile_roles.get("product_mgr"))
@@ -393,11 +410,12 @@ def validate_config(
                 )
 
         if premium and profile_name == "premium":
-            for role, override in premium.items():
-                if role in roles and family(override) != family(roles[role]):
+            for role in premium:
+                effective = profile_roles.get(role)
+                if role in roles and family(effective) != family(roles[role]):
                     warnings.append(
                         f"premium.{role} changes family "
-                        f"'{family(roles[role])}' -> '{family(override)}'; "
+                        f"'{family(roles[role])}' -> '{family(effective)}'; "
                         "premium should retain each role's family"
                     )
 
@@ -425,6 +443,15 @@ class ConformanceRegressionTests(unittest.TestCase):
         errors, _, _, _ = self.validate(copy.deepcopy(self.original))
         self.assertEqual(errors, [])
 
+    def test_invalid_credit_conversion_cannot_disable_cost_gate(self) -> None:
+        for rate in (None, True, 0, -0.01, float("nan"), float("inf"), "0.01"):
+            with self.subTest(rate=rate):
+                cfg = copy.deepcopy(self.original)
+                cfg["cost"]["usd_per_ai_credit"] = rate
+                self.assertTrue(any(
+                    "cost.usd_per_ai_credit" in error for error in self.validate(cfg)[0]
+                ))
+
     def test_rejects_unknown_model_and_unsupported_knob(self) -> None:
         unknown = copy.deepcopy(self.original)
         unknown["premium"]["lead_eng"]["model"] = "unregistered-model"
@@ -445,6 +472,27 @@ class ConformanceRegressionTests(unittest.TestCase):
         self.assertTrue(any(
             "premium.roles.lead_eng" in e and "context_tier 'long_context'" in e
             for e in errors
+        ))
+
+    def test_effort_only_premium_overlay_inherits_model_and_family(self) -> None:
+        cfg = copy.deepcopy(self.original)
+        cfg["premium"] = {"lead_eng": {"reasoning_effort": "xhigh"}}
+        errors, warnings, _, _ = self.validate(cfg)
+        self.assertEqual(errors, [])
+        self.assertFalse(any("changes family" in warning for warning in warnings))
+
+    def test_unused_single_sealer_cannot_satisfy_full_mode_plurality(self) -> None:
+        cfg = copy.deepcopy(self.original)
+        cfg["seal_plurality"]["authors"] = [cfg["seal_plurality"]["authors"][0]]
+        cfg["roles"]["qa_sealed"] = {
+            "model": "gemini-3.8-flash", "context_tier": "default",
+        }
+        cfg["premium"]["qa_sealed"] = {
+            "model": "gemini-3.8-flash", "context_tier": "default",
+            "reasoning_effort": None,
+        }
+        self.assertTrue(any(
+            "seal_plurality_min" in error for error in self.validate(cfg)[0]
         ))
 
     def test_rejects_incomplete_or_ambiguous_model_registry(self) -> None:
@@ -521,6 +569,28 @@ class ConformanceRegressionTests(unittest.TestCase):
                 (destination / "suite-2" / "test_same_name.py").read_text(encoding="utf-8"),
                 "author two",
             )
+
+    def test_documented_suite_hash_survives_copy_and_detects_changes(self) -> None:
+        skill = (self.root / "SKILL.md").read_text(encoding="utf-8")
+        match = re.search(r"1\. Per suite: `([^`]+)`", skill)
+        self.assertIsNotNone(match)
+        recipe = match.group(1)
+        with tempfile.TemporaryDirectory() as temp:
+            source = pathlib.Path(temp) / "vault" / "suite-1"
+            source.mkdir(parents=True)
+            (source / "test same name.py").write_text("assert 1 == 1\n", encoding="utf-8")
+            destination = pathlib.Path(temp) / "verify" / "sealed" / "suite-1"
+            shutil.copytree(source, destination)
+
+            def digest(path: pathlib.Path) -> str:
+                command = recipe.replace("<vault>/<run-id>/suite-<i>", str(path))
+                return subprocess.check_output(
+                    ["bash", "-o", "pipefail", "-c", command], text=True,
+                )
+
+            self.assertEqual(digest(source), digest(destination))
+            (destination / "test same name.py").write_text("assert 1 == 2\n", encoding="utf-8")
+            self.assertNotEqual(digest(source), digest(destination))
 
     def test_hardening_reuse_requires_live_agent_and_exact_tuple(self) -> None:
         errors, _, _, _ = self.validate(copy.deepcopy(self.original))

@@ -347,6 +347,9 @@ learning:
 cost:
   track: true
   ceiling_usd: 5.00
+  # USD-equivalent usage, not the invoice after allowances/discounts.
+  # GitHub Docs: copilot/reference/ai-models/models-and-pricing (2026-11-06).
+  usd_per_ai_credit: 0.01
   on_ceiling: park_and_notify   # park_and_notify | abort
 
 outcome_evaluation:

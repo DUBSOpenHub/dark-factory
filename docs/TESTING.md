@@ -112,6 +112,7 @@ Example snippets:
 | 7 | If gaps exist | Hardening shows failure messages only (no test code) |
 | 8 | With two suites containing the same filename | Both author-scoped copies remain present and are executed separately |
 | 9 | Force zero tests, a skip, setup error, timeout, count/hash mismatch, or unknown result | No Shadow Report or numeric score; `SHADOW-EXECUTION-ERROR.md` and `SHADOW_SCORE: INVALID` |
+| 10 | Copy an unchanged suite, then change one copied test | Relative-path hash is stable after copying; the changed test produces a hash mismatch |
 
 ### Playbook 4: Resume After Crash
 
@@ -212,6 +213,12 @@ Before submitting changes, verify:
 ---
 
 ## Validation commands
+
+The regression suite covers partial premium inheritance, configured full-mode author plurality,
+relocation-stable suite hashes, isolated namespaces, the live engineer tuple contract, and
+invalid AI-credit conversion rates. During live playbooks, preserve actual usage evidence:
+`totalNanoAiu / 1e9` gives AI credits; multiply by `cost.usd_per_ai_credit` for USD-equivalent
+usage. Unknown usage must stop the run, not become a fabricated zero-cost passing gate.
 
 ```bash
 # Level 4 conformance — families, capabilities, plurality, gates

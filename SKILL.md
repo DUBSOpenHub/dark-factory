@@ -161,7 +161,6 @@ _Automatic. No checkpoint. Abort-on-violation._
 
 ### 0a. Validate invariants
 
-```text
 For each effective profile (`default`, then `premium` when selected), merge its role
 overrides and resolve every configured dispatch. Keep plurality authors in the seal
 set, together with that profile's `qa_sealed` role:
@@ -169,9 +168,9 @@ set, together with that profile's `qa_sealed` role:
 ```text
 seal_families = { family_of[a.model] for a in config.seal_plurality.authors }
               ∪ { family_of[effective_roles.qa_sealed.model] }
+plurality_families = { family_of[a.model] for a in config.seal_plurality.authors }
 builders = [effective_roles.lead_eng, *config.hardening.ladder]
 if tournament mode: builders += config.tournament.competitors
-```
 ```
 
 Check, in order:
@@ -181,7 +180,7 @@ Check, in order:
 | Registry validity | every configured model maps to exactly one family and a capability entry | **abort** — config bug |
 | Capability validity | every role/rung/competitor uses only supported effort/context values | **abort** — config bug |
 | `cross_family_required` | every builder family differs from every active seal family | per `config.invariants.on_violation` |
-| `seal_plurality_min` | `len(seal_families) >= min` for each effective profile | same |
+| `seal_plurality_min` | `len(plurality_families) >= min` when plurality is enabled; an unused single-sealer role cannot satisfy the full-mode minimum | same |
 | Tournament independence | every tournament competitor differs from seal, PM, and red-team families | same |
 | Hardening independence | every hardening rung differs from seal, PM, and red-team families | same |
 | PM bias direction | every builder family differs from `product_mgr` | **abort** (overclaims quality) |
@@ -348,12 +347,15 @@ Dispatch **Architect** (`config.roles.architect`) in background with the **full*
 
 When all seal authors finish:
 
-1. Per suite: `find <vault>/<run-id>/suite-<i> -type f | sort | xargs shasum -a 256 | shasum -a 256`
+1. Per suite: `set -o pipefail; (cd "<vault>/<run-id>/suite-<i>" && find . -type f -exec shasum -a 256 {} + | LC_ALL=C sort | shasum -a 256)`
 2. Store each hash in `sealed_suites` and in state. Compute a combined `sealed_hash`.
 3. Record author model + family + positive declared executable-test count and file count per
    suite. The executable-test count is what Phase 4 must discover and execute.
 4. **Never reveal sealed test contents** — not to the user, not to any building agent, at any
    phase. Contents are released only into the post-delivery archive.
+
+Hash relative paths from inside each suite so copying it does not change its digest.
+Reuse this exact recipe in Phase 4, before execution can create runner caches.
 
 ```text
 🏭 Phase 2 complete — <N> sealed suites 🔒 | Architecture drafted.
@@ -378,8 +380,8 @@ spec_ambiguity = contradictory_criteria / total_criteria_covered
 
 Interpretation:
 
-- **Agreement** → the spec is unambiguous. **Union** the suites into the envelope
-  (deduplicate by behaviour, keep the strictest assertion).
+- **Agreement** → the spec is unambiguous. Keep every immutable suite in the envelope.
+  Deduplicate only coverage summaries, never test files or execution counts after sealing.
 - **Contradiction** → two frontier models from different families read the same spec and
   reached opposite conclusions about correct behaviour. **The specification is defective**, and
   you found out before spending a cent on implementation.
@@ -443,7 +445,7 @@ You are the Lead Engineer for the Dark Factory.
 ```
 
 Record `eng_agent_id` and the actual dispatched tuple
-`(model, reasoning_effort, context_tier)` in state. Store omitted parameters as `null`; do not
+`(model, reasoning_effort, context_tier)` as `eng_actual_tuple` in state. Store omitted parameters as `null`; do not
 store requested-but-omitted values. Phase 5 may reuse this agent only after checking its live
 status and the next rung's complete tuple.
 
@@ -469,7 +471,7 @@ _The seal is opened here — and never inside the builder's workspace._
 
 ### 4a. Integrity
 
-1. Recompute every suite hash; compare against state. **Mismatch → seal tampering:** set
+1. Recompute every suite hash using the Phase 2c recipe; compare against state. **Mismatch → seal tampering:** set
    `seal_broken=1`, mark the Shadow Score **INVALID**, abort the run.
 2. If `canary_enabled`, `stat` the canary. If its access time changed, or any builder
    transcript references the vault path, record a **seal break**: `seal_broken=1`, Shadow
@@ -490,7 +492,8 @@ git worktree remove <verify_dir>/<run-id> --force
 
 Copy each manifest-listed suite directory separately to `sealed/suite-<i>/` in the
 disposable verify worktree. Reject missing or duplicate suite IDs, an existing destination, an empty suite, a hash
-mismatch, or a copied file count that differs from its manifest.
+mismatch, or a copied file count that differs from its manifest. Verify the copied suite using
+the same relative-path hash recipe before running any tests.
 Pass QA Validator the non-secret manifest (`suite_id`, author model/family, expected test
 count, file count, expected hash, and relative suite path); do not merge or flatten directories.
 Same-named files from independent authors must remain distinct.
@@ -594,6 +597,7 @@ For cycle `n` (0-indexed), rung = `config.hardening.ladder[min(n, len-1)]`:
 
    ```text
    status = read_agent(eng_agent_id, wait=false)
+   saved_actual_tuple = state.eng_actual_tuple
    requested_tuple = (rung.model, effective_reasoning_effort, effective_context_tier)
    reuse = status in {running, idle} AND saved_actual_tuple == requested_tuple
    ```
@@ -728,6 +732,19 @@ A breach triggers `config.autonomy.on_gate_breach`:
 
 **Cost ceiling** applies at every phase. On breach, park before dispatching the next agent.
 
+**Cost accounting:** GitHub Copilot usage can expose `copilotUsage.totalNanoAiu` rather than
+dollars. Convert measured usage to AI credits with `/ 1e9`, then to USD-equivalent usage with
+`config.cost.usd_per_ai_credit`. This is a usage budget, not the invoice after allowances.
+Use authoritative current-run usage records (the CLI's local `session.usage_record` events
+when available), including manager and subagent calls. Deduplicate by `apiCallId`; never add
+cumulative checkpoints or child totals again when the parent already includes them. Preserve
+the raw units, conversion rate, and source with each gate observation.
+
+Never treat absent usage as zero or interpret legacy request multipliers as dollars.
+Missing/incomplete usage, unknown units, or an invalid conversion rate must park the run.
+A native `--max-ai-credits` limit may additionally guard the session and its subagents; it is
+a post-response soft cap, not a replacement for the measured phase gate.
+
 **Checkpoint choices:** **approve** / **modify** / **skip-all** / **abort**.
 `skip-all` sets `autonomy: dark` for the remainder — gates still apply, and delivery is still
 human-approved. Phase 6 offers only **approve** / **reject**.
@@ -759,6 +776,7 @@ Write `<config.isolation.state_file>` on **every** phase transition:
   "shadow_score": null,
   "hardening_cycle": 0,
   "eng_agent_id": null,
+  "eng_actual_tuple": null,
   "validator_agent_id": null,
   "cost_usd": 0.0,
   "seal_broken": false,
