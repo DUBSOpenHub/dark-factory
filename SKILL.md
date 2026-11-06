@@ -97,9 +97,9 @@ Every agent call uses this shape. **Read the capability rules — they are not o
 ```text
 task(
   agent_type="<see Agent Type Selection>",
-  model=<config.roles.<role>.model>,
-  reasoning_effort=<config.roles.<role>.reasoning_effort>,   # OMIT if unsupported
-  context_tier=<config.roles.<role>.context_tier>,           # OMIT if unsupported
+  model=<validated effective dispatch model>,
+  reasoning_effort=<validated value>,   # include only when supported/configured
+  context_tier=<validated value>,       # include only when supported/configured
   mode=<"sync" | "background">,
   description="<phase name>",
   prompt="..."
@@ -108,11 +108,14 @@ task(
 
 **Capability rules (`config.model_capabilities`):**
 
-1. If a model's `effort` list is empty (e.g. `kimi-k2.7-code`, `claude-haiku-4.5`),
+1. If a model's `effort` list is empty (e.g. `kimi-k2.7-code`, `claude-haiku-5.5`),
    **omit `reasoning_effort` entirely.** Do not pass a default.
 2. If `long_context` is not in a model's `context` list, **omit `context_tier`.**
 3. If a configured value is unsupported, that is a **config bug** — report it and abort. Do
    not silently downgrade.
+4. Validate the selected model against both `families` and `model_capabilities` before dispatch.
+   If a model is rejected by the user's CLI account or plan, stop with the model ID and
+   dispatch error. Never retry under a different model or family.
 
 ### Agent Type Selection
 
@@ -137,8 +140,8 @@ emphatically not an express task.
 When `config.factory.express_detection: classifier`, dispatch:
 
 ```text
-task(agent_type="explore", model=<config.roles.classifier.model>,
-     reasoning_effort=<config.roles.classifier.reasoning_effort>,
+task(agent_type="explore", model=<validated classifier model>,
+     reasoning_effort=<only when configured and supported>,
      description="Complexity triage", prompt="
 Reply with exactly one word: EXPRESS or FULL.
 EXPRESS = single file, no new dependencies, no schema or public API change,
@@ -159,22 +162,35 @@ _Automatic. No checkpoint. Abort-on-violation._
 ### 0a. Validate invariants
 
 ```text
-impl_family  = family_of[config.roles.lead_eng.model]
+For each effective profile (`default`, then `premium` when selected), merge its role
+overrides and resolve every configured dispatch. Keep plurality authors in the seal
+set, together with that profile's `qa_sealed` role:
+
+```text
 seal_families = { family_of[a.model] for a in config.seal_plurality.authors }
-              ∪ { family_of[config.roles.qa_sealed.model] }
+              ∪ { family_of[effective_roles.qa_sealed.model] }
+builders = [effective_roles.lead_eng, *config.hardening.ladder]
+if tournament mode: builders += config.tournament.competitors
+```
 ```
 
 Check, in order:
 
 | Check | Condition | On failure |
 |---|---|---|
-| Capability validity | every role/rung/competitor model supports its configured effort + tier | **abort** — config bug |
-| `cross_family_required` | `impl_family ∉ seal_families` | per `config.invariants.on_violation` |
-| `seal_plurality_min` | `len(seal_families) >= min` | same |
-| Judge independence | no `tournament.competitors[i]` family ∈ `seal_families` | same |
-| Ladder independence | no `hardening.ladder[i]` family ∈ `seal_families` | same |
-| PM bias direction | `family_of[product_mgr] != impl_family` | **abort** (overclaims quality) |
-| Critic independence | `family_of[arch_critic] != family_of[architect]` | same |
+| Registry validity | every configured model maps to exactly one family and a capability entry | **abort** — config bug |
+| Capability validity | every role/rung/competitor uses only supported effort/context values | **abort** — config bug |
+| `cross_family_required` | every builder family differs from every active seal family | per `config.invariants.on_violation` |
+| `seal_plurality_min` | `len(seal_families) >= min` for each effective profile | same |
+| Tournament independence | every tournament competitor differs from seal, PM, and red-team families | same |
+| Hardening independence | every hardening rung differs from seal, PM, and red-team families | same |
+| PM bias direction | every builder family differs from `product_mgr` | **abort** (overclaims quality) |
+| Critic independence | `arch_critic` differs in family from `architect` | same |
+
+Re-run this complete matrix after empirical-routing overrides and before any agent call.
+Model IDs and capability settings are a reviewed snapshot, not proof of account entitlement
+or comparative quality. If dispatch rejects a configured model, stop; do not silently fall
+back to a model that could invalidate the verified family relationships.
 
 On `on_violation: abort`:
 
@@ -334,7 +350,8 @@ When all seal authors finish:
 
 1. Per suite: `find <vault>/<run-id>/suite-<i> -type f | sort | xargs shasum -a 256 | shasum -a 256`
 2. Store each hash in `sealed_suites` and in state. Compute a combined `sealed_hash`.
-3. Record author model + family + test count per suite.
+3. Record author model + family + positive declared executable-test count and file count per
+   suite. The executable-test count is what Phase 4 must discover and execute.
 4. **Never reveal sealed test contents** — not to the user, not to any building agent, at any
    phase. Contents are released only into the post-delivery archive.
 
@@ -403,13 +420,15 @@ Two shapes. Both receive the **full, unsummarised** PRD and ARCH.
 
 ### 3-single (full / express mode)
 
-Launch the Lead Engineer as a **background, multi-turn** agent and **keep it alive** through
-hardening. Do not fire-and-forget.
+Launch the Lead Engineer as a **background, multi-turn** agent. Record the actual dispatch
+tuple and agent ID in run state; hardening reuse is conditional on a later liveness and tuple
+check.
 
 ```text
 eng = task(agent_type="general-purpose", mode="background",
-           model=<config.roles.lead_eng.model>,
-           reasoning_effort=<...>, context_tier=<...>,
+           model=<validated effective dispatch model>,
+           reasoning_effort=<only when configured and supported>,
+           context_tier=<only when configured and supported>,
            description="Implementation", prompt="
 You are the Lead Engineer for the Dark Factory.
 ## Mission: Implement the system per PRD and Architecture.
@@ -423,7 +442,10 @@ You are the Lead Engineer for the Dark Factory.
 ")
 ```
 
-Record the agent id in state as `eng_agent_id`. Phase 5 talks to **this same agent**.
+Record `eng_agent_id` and the actual dispatched tuple
+`(model, reasoning_effort, context_tier)` in state. Store omitted parameters as `null`; do not
+store requested-but-omitted values. Phase 5 may reuse this agent only after checking its live
+status and the next rung's complete tuple.
 
 ### 3-tournament (`dark factory tournament`)
 
@@ -459,10 +481,19 @@ _The seal is opened here — and never inside the builder's workspace._
 cd <repo_root>
 git -C <builder_worktree> add -A && git -C <builder_worktree> commit -m "factory: build <run-id>"
 git worktree add <config.isolation.verify_dir>/<run-id> <branch_prefix><run-id>
-cp -r <vault>/<run-id>/suite-*/* <verify_dir>/<run-id>/
+mkdir "<verify_dir>/<run-id>/sealed"
+cp -R "<vault>/<run-id>/suite-<i>" "<verify_dir>/<run-id>/sealed/"
+# Repeat once per manifest entry; never flatten suite contents into one directory.
 # ... validate ...
 git worktree remove <verify_dir>/<run-id> --force
 ```
+
+Copy each manifest-listed suite directory separately to `sealed/suite-<i>/` in the
+disposable verify worktree. Reject missing or duplicate suite IDs, an existing destination, an empty suite, a hash
+mismatch, or a copied file count that differs from its manifest.
+Pass QA Validator the non-secret manifest (`suite_id`, author model/family, expected test
+count, file count, expected hash, and relative suite path); do not merge or flatten directories.
+Same-named files from independent authors must remain distinct.
 
 The builder's own tree **never contains sealed files at any point**. Spec v1.0.0 §4.3 says
 "copy sealed tests into the implementation workspace" — that instruction creates a race
@@ -479,22 +510,38 @@ hardening cycles so it can report _trend_):
 You are the QA Validator for the Dark Factory.
 ## Mission: Run ALL suites — the engineer's open tests AND the sealed acceptance tests.
 ## Working Directory: <verify_dir>/<run-id>
+## Sealed suite manifest: <suite_id, author model/family, expected test count, file count, hash, path>
 ## Output: <config.reporting.report_basename>.md AND .json
    (see templates/shadow-report-template.md — the JSON carries the Spec §5.2
    required fields: shadow_score_spec_version, shadow_score, level,
-   sealed_tests.*, failures[]).
-   Last line of your response: 'SHADOW_SCORE: <N>%'
+   sealed_tests.*, failures[], and per-suite execution evidence).
+   If any sealed suite is incomplete or invalid, create SHADOW-EXECUTION-ERROR.md instead;
+   include only suite IDs and execution metadata, never test names, assertions, source, or
+   source excerpts. Do not create a Shadow Report or numeric score.
+   Last line: 'SHADOW_SCORE: <N>%' only for complete execution; otherwise
+   'SHADOW_SCORE: INVALID'.
 ## Rules: Do NOT modify code or tests. Facts only, no suggestions. NEVER emit
    sealed test source code into any report section.
 ```
 
 ### 4d. Record
 
-- First validation only: `initial_shadow_score`.
-- Every validation: a `phase_results` row with `cycle_index` and `shadow_score_at_cycle`.
+- A sealed suite is `complete` only when its hash matches, expected and discovered test counts
+  are equal and positive, all discovered tests executed, and there are no skipped tests,
+  collection/setup/runner errors, timeouts, or unknown outcomes. Assertion failures are valid
+  executed results and count as failures.
+- If any sealed suite is not complete, set `validation_status: incomplete` and
+  `shadow_score: null` in run state, preserve `SHADOW-EXECUTION-ERROR.md` outside the disposable
+  worktree, and stop before score gates, hardening, or delivery. Preserve the error artifact
+  outside the verify worktree before destroying it. Never convert missing, skipped, zero, or
+  unknown execution into a passing score.
+- Only for complete execution: compute the score from the sum of all suite totals; first
+  validation only sets `initial_shadow_score`, and every validation records a `phase_results`
+  row with `cycle_index` and `shadow_score_at_cycle`.
 - Destroy the verify worktree.
 
-Gate: `shadow_score > config.autonomy.gates.shadow_score_max` → breach.
+Gate (only when `validation_status: complete`): `shadow_score >
+config.autonomy.gates.shadow_score_max` → breach.
 
 **Tournament scoring:** rank competitors by Shadow Score. If _every_ competitor exceeds
 `config.tournament.all_fail_spec_review_threshold`, **the spec is the likely defect, not the
@@ -542,7 +589,20 @@ For cycle `n` (0-indexed), rung = `config.hardening.ladder[min(n, len-1)]`:
 
 1. Extract from the shadow report: test name, expected, actual — plus the assertion text
    **only if** `rung.reveal == "assertions"`. **Never test source code, at any rung.**
-2. **If the rung's model matches the live engineer's model:** continue the conversation.
+2. Resolve the rung's actual dispatch tuple using the capability map, then inspect the saved
+   engineer agent:
+
+   ```text
+   status = read_agent(eng_agent_id, wait=false)
+   requested_tuple = (rung.model, effective_reasoning_effort, effective_context_tier)
+   reuse = status in {running, idle} AND saved_actual_tuple == requested_tuple
+   ```
+
+   Reuse is permitted **only** when the agent is confirmed `running` or `idle` and all three
+   tuple fields match exactly. A same-family model change, effort change, context change,
+   completed/failed/cancelled agent, missing ID, or unknown status requires a new engineer.
+   Never send a turn to a dead or unverified agent.
+3. If `reuse` is true, continue the conversation:
 
    ```text
    write_agent(eng_agent_id, "
@@ -555,16 +615,14 @@ For cycle `n` (0-indexed), rung = `config.hardening.ladder[min(n, len-1)]`:
    ")
    ```
 
-   The engineer keeps its full mental model of the codebase. Re-dispatching a fresh agent each
-   cycle pays rediscovery three times and produces three amnesiac strangers who each repeat the
-   others' dead ends.
-
-3. **If the rung switches model** (rung 3 switches family): dispatch a new background agent,
-   and hand it the accumulated "already ruled out" ledger so the diversity gain isn't spent
-   re-treading known-bad paths.
-4. Re-validate (Phase 4b–4d) — new verify worktree each cycle.
-5. Shadow Score `0%` → break.
-6. Ask the live QA Validator for **trend** each cycle. A report like _"test_auth_expiry has now
+4. Otherwise, dispatch a new background engineer using the resolved tuple. Give it the Phase 3
+   inputs, current builder worktree, sealed failure messages, and bounded "already ruled out"
+   ledger. Do not include the vault or verify-worktree paths, suite manifest/counts, test source,
+   fixtures, or runner output that could expose sealed contents. Record the new agent ID and the
+   exact tuple passed to `task()` in state; do not retain the old ID as active.
+5. Re-validate (Phase 4b–4d) — new verify worktree each cycle.
+6. Shadow Score `0%` → break.
+7. Ask the live QA Validator for **trend** each cycle. A report like _"test_auth_expiry has now
    failed for three different reasons"_ means the engineer is guessing, not converging —
    escalate immediately rather than spending the remaining rungs.
 
@@ -746,8 +804,9 @@ Write `<config.isolation.state_file>` on **every** phase transition:
 5. **Never write sealed tests into the builder's workspace** under `workspace_isolation: strict`.
 6. **Pass artifacts in full.** Summarise only if a `config.safety` backstop fires — then set
    `spec_truncated` and mark the score ADVISORY. Acceptance criteria are **always** verbatim.
-7. **Keep agents alive.** Use `mode="background"` + `write_agent` for the engineer and
-   validator across hardening. Re-dispatch only when the ladder changes model.
+7. **Reuse engineers safely.** Use `write_agent` only for a confirmed live agent with an exact
+   model/effort/context tuple match; otherwise dispatch a new background engineer with a
+   sealed-safe handoff. Keep the QA Validator alive only while its status is live.
 8. **Record everything.** Every phase writes a `phase_results` row with model, family, effort,
    tier, tokens, and cost. `initial_shadow_score` before any hardening, `hardening_velocity`
    after — both are Level 3 conformance requirements.

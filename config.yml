@@ -23,6 +23,8 @@ factory:
 
   # Logging verbosity (debug, info, warn, error)
   verbosity: info
+  # Review the public roster regularly; access is also account/plan-dependent.
+  model_catalog_verified_on: "2026-11-05"
 
 # ---------------------------------------------------------------------------
 # INVARIANTS — hard preconditions. The orchestrator ABORTS at Phase 0 if these
@@ -55,13 +57,15 @@ invariants:
 # The orchestrator resolves each role's model to a family via this map.
 # ---------------------------------------------------------------------------
 families:
-  anthropic: [claude-opus-5, claude-opus-4.8, claude-opus-4.7, claude-opus-4.6,
+  anthropic: [claude-opus-5.5, claude-sonnet-5.5, claude-haiku-5.5,
+              claude-opus-5, claude-opus-4.8, claude-opus-4.7, claude-opus-4.6,
               claude-sonnet-5, claude-sonnet-4.6, claude-haiku-4.5]
-  openai: [gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4,
+  openai: [gpt-6-astra, gpt-6.1-sol, gpt-6-luna, gpt-6-sol, gpt-6.1-terra,
+           gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4,
            gpt-5.3-codex, gpt-5.4-mini, gpt-5-mini]
-  google: [gemini-3.1-pro-preview, gemini-3.6-flash, gemini-3.5-flash]
+  google: [gemini-3.8-flash, gemini-3.1-pro-preview, gemini-3.6-flash, gemini-3.5-flash]
   moonshot: [kimi-k2.7-code]
-  microsoft: [mai-code-1-flash-picker]
+  xai: [grok-4.7]
 
 # ---------------------------------------------------------------------------
 # MODEL CAPABILITIES — not every model accepts every knob. Dispatching an
@@ -73,6 +77,9 @@ families:
 #                  parameter entirely rather than passing a default.
 # ---------------------------------------------------------------------------
 model_capabilities:
+  claude-opus-5.5: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
+  claude-sonnet-5.5: {effort: [low, medium, high, xhigh], context: [default, long_context]}
+  claude-haiku-5.5: {effort: [], context: [default]}
   claude-opus-5: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
   claude-opus-4.8: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
   claude-opus-4.7: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
@@ -80,6 +87,11 @@ model_capabilities:
   claude-sonnet-5: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
   claude-sonnet-4.6: {effort: [low, medium, high, max], context: [default, long_context]}
   claude-haiku-4.5: {effort: [], context: [default]}
+  gpt-6-astra: {effort: [low, medium, high, xhigh], context: [default, long_context]}
+  gpt-6.1-sol: {effort: [low, medium, high, xhigh], context: [default, long_context]}
+  gpt-6-luna: {effort: [low, medium, high, xhigh], context: [default, long_context]}
+  gpt-6-sol: {effort: [low, medium, high, xhigh], context: [default, long_context]}
+  gpt-6.1-terra: {effort: [], context: [default]}
   gpt-5.6-sol: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
   gpt-5.6-terra: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
   gpt-5.6-luna: {effort: [low, medium, high, xhigh, max], context: [default, long_context]}
@@ -88,18 +100,19 @@ model_capabilities:
   gpt-5.3-codex: {effort: [low, medium, high, xhigh], context: [default]}
   gpt-5.4-mini: {effort: [low, medium, high, xhigh], context: [default]}
   gpt-5-mini: {effort: [low, medium, high], context: [default]}
+  gemini-3.8-flash: {effort: [], context: [default]}
   gemini-3.1-pro-preview: {effort: [low, medium, high], context: [default, long_context]}
   gemini-3.6-flash: {effort: [minimal, low, medium, high], context: [default, long_context]}
   gemini-3.5-flash: {effort: [minimal, low, medium, high], context: [default, long_context]}
   kimi-k2.7-code: {effort: [], context: [default]}
-  mai-code-1-flash-picker: {effort: [low, medium, high], context: [default]}
+  grok-4.7: {effort: [], context: [default]}
 
 # ---------------------------------------------------------------------------
 # ROLES — model + reasoning effort + context tier, per role.
 #
-# reasoning_effort is the defining 2026 quality lever. Buying quality by
-# swapping the model SKU is the 2025 approach; effort is cheaper and more
-# targeted. Spend it where deep reasoning actually pays:
+# Use only documented model controls. Higher effort/context can change cost and
+# latency; neither is evidence of better task quality without benchmarks.
+# Spend deeper reasoning where it is most likely to be useful:
 #   - Sealed test authoring (adversarial edge-case generation)
 #   - Architecture (one-shot, highest leverage decision in the run)
 #   - Red teaming (attack is a reasoning task)
@@ -114,56 +127,51 @@ roles:
   #     artificially HIGH Shadow Score. Conservative; penalises the builder
   #     slightly but never overclaims. Acceptable, and noted in the report.
   product_mgr:
-    model: gpt-5.5
+    model: gpt-6.1-sol
     reasoning_effort: medium
-    context_tier: default
+    context_tier: long_context
 
   architect:
-    model: claude-opus-5
+    model: claude-opus-5.5
     reasoning_effort: xhigh
     context_tier: long_context
 
   arch_critic:
     # MUST differ in family from architect — a critic that shares the
     # architect's priors approves the architect's blind spots.
-    model: gpt-5.6-terra
-    reasoning_effort: xhigh
+    model: gpt-6-astra
+    reasoning_effort: high
     context_tier: long_context
 
   qa_sealed:
     # MUST differ in family from lead_eng (invariants.cross_family_required).
-    # `max` effort here is the best dollar in the pipeline: a sealed test that
-    # catches a real defect is a one-time cost amortised across every
-    # hardening cycle in the run.
-    model: gpt-5.6-terra
-    reasoning_effort: max
+    model: gpt-6-astra
+    reasoning_effort: xhigh
     context_tier: default
 
   lead_eng:
-    model: claude-opus-4.8
-    reasoning_effort: medium
+    model: claude-sonnet-5.5
+    reasoning_effort: high
     context_tier: long_context
 
   qa_validator:
     # Mechanical: run a test runner, parse output, count. Don't pay to think.
-    model: gemini-3.6-flash
-    reasoning_effort: low
+    model: gemini-3.8-flash
     context_tier: default
 
   red_team:
-    model: gpt-5.6-sol
+    model: gpt-6.1-sol
     reasoning_effort: xhigh
     context_tier: long_context
 
   outcome_evaluator:
-    model: claude-sonnet-5
+    model: claude-sonnet-5.5
     reasoning_effort: high
     context_tier: long_context
 
   classifier:
     # Sub-second express/full triage. Replaces the word-count heuristic.
-    model: gemini-3.6-flash
-    reasoning_effort: minimal
+    model: claude-haiku-5.5
     context_tier: default
 
 # ---------------------------------------------------------------------------
@@ -176,15 +184,15 @@ roles:
 # capability of each role WITHIN its assigned family.
 # ---------------------------------------------------------------------------
 premium:
-  product_mgr: {model: gpt-5.6-luna, reasoning_effort: high, context_tier: long_context}
-  architect: {model: claude-opus-5, reasoning_effort: max, context_tier: long_context}
-  arch_critic: {model: gpt-5.6-terra, reasoning_effort: max, context_tier: long_context}
-  qa_sealed: {model: gpt-5.6-terra, reasoning_effort: max, context_tier: long_context}
-  lead_eng: {model: claude-opus-5, reasoning_effort: xhigh, context_tier: long_context}
-  qa_validator: {model: gemini-3.1-pro-preview, reasoning_effort: medium, context_tier: default}
-  red_team: {model: gpt-5.6-sol, reasoning_effort: max, context_tier: long_context}
-  outcome_evaluator: {model: claude-opus-4.8, reasoning_effort: high, context_tier: long_context}
-  classifier: {model: gemini-3.6-flash, reasoning_effort: low, context_tier: default}
+  product_mgr: {model: gpt-6-luna, reasoning_effort: high, context_tier: long_context}
+  architect: {model: claude-opus-5.5, reasoning_effort: max, context_tier: long_context}
+  arch_critic: {model: gpt-6-astra, reasoning_effort: xhigh, context_tier: long_context}
+  qa_sealed: {model: gpt-6-astra, reasoning_effort: xhigh, context_tier: long_context}
+  lead_eng: {model: claude-opus-5.5, reasoning_effort: xhigh, context_tier: long_context}
+  qa_validator: {model: gemini-3.8-flash, context_tier: default}
+  red_team: {model: gpt-6.1-sol, reasoning_effort: xhigh, context_tier: long_context}
+  outcome_evaluator: {model: claude-opus-5.5, reasoning_effort: high, context_tier: long_context}
+  classifier: {model: claude-haiku-5.5, context_tier: default}
 
 # ---------------------------------------------------------------------------
 # SEAL PLURALITY — N independent sealed suites from N model families.
@@ -197,8 +205,8 @@ premium:
 seal_plurality:
   enabled: true
   authors:
-    - {model: gpt-5.6-terra, reasoning_effort: max, context_tier: default}
-    - {model: gemini-3.1-pro-preview, reasoning_effort: high, context_tier: default}
+    - {model: gpt-6-astra, reasoning_effort: xhigh, context_tier: default}
+    - {model: gemini-3.8-flash, context_tier: default}
   # Express mode uses a single author to stay fast.
   express_authors: 1
 
@@ -212,15 +220,12 @@ seal_plurality:
 # ---------------------------------------------------------------------------
 tournament:
   enabled: false          # opt-in via "dark factory tournament — <goal>"
-  # No competitor may share a family with a seal author. A competitor that
-  # shares the sealer's priors scores artificially well against that sealed
-  # suite — which biases the very model selection the tournament exists to
-  # perform. Seal authors are openai + google, so competitors draw from
-  # anthropic / moonshot / microsoft.
+  # No competitor may share a family with a seal author. Seal authors are
+  # openai + google, so competitors draw from other configured families.
   competitors:
-    - {model: claude-opus-4.8, reasoning_effort: medium, context_tier: long_context}
+    - {model: claude-sonnet-5.5, reasoning_effort: high, context_tier: long_context}
     - {model: kimi-k2.7-code}                    # no effort/context knobs — see model_capabilities
-    - {model: mai-code-1-flash-picker, reasoning_effort: high}
+    - {model: grok-4.7}
   enforce_judge_independence: true
   # If every competitor scores above this, the SPEC is the likely defect —
   # escalate to spec review instead of burning hardening cycles on the builder.
@@ -243,10 +248,10 @@ hardening:
   #   through model correlation rather than through visibility.
   # Rung 4 returns maximum capability AND unlocks assertion-level disclosure.
   ladder:
-    - {model: claude-opus-4.8, reasoning_effort: high, context_tier: default, reveal: failure_messages}
-    - {model: claude-opus-5, reasoning_effort: xhigh, context_tier: long_context, reveal: failure_messages}
+    - {model: claude-opus-5.5, reasoning_effort: high, context_tier: default, reveal: failure_messages}
+    - {model: claude-opus-5.5, reasoning_effort: xhigh, context_tier: long_context, reveal: failure_messages}
     - {model: kimi-k2.7-code, reveal: failure_messages}   # family switch: moonshot
-    - {model: claude-opus-5, reasoning_effort: max, context_tier: long_context, reveal: assertions}
+    - {model: claude-opus-5.5, reasoning_effort: max, context_tier: long_context, reveal: assertions}
 
   # reveal levels — progressive disclosure. NEVER includes test source code.
   #   failure_messages — test name, expected, actual (Spec v1.0.0 section 4.4 default)

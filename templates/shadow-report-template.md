@@ -3,7 +3,7 @@
 > **Format conforms to:** [Shadow Score Spec v2.0 §5](https://github.com/DUBSOpenHub/shadow-score-spec/blob/main/SPEC.md)
 > Produced by the QA Validator in Phase 4 and after every hardening cycle.
 >
-> **Two files are required** when `config.reporting.emit_json` is true:
+> **Two files are required for complete execution** when `config.reporting.emit_json` is true:
 > `SHADOW-REPORT.md` (human) and `SHADOW-REPORT.json` (machine, carries the §5.2 required
 > fields). The markdown is a rendering of the JSON, not a substitute for it.
 
@@ -89,8 +89,18 @@ Machine-readable failure summary for the Lead Engineer:
 _Only if a suite could not run. A suite that did not run is not a suite that passed._
 ```
 
-**Last line of the validator's response** must be `SHADOW_SCORE: {percentage}%` so the
-orchestrator can parse it.
+Only complete sealed execution may produce these Shadow Report files and a numeric score. If
+any sealed suite is incomplete or invalid, produce only `SHADOW-EXECUTION-ERROR.md`, listing
+suite IDs and execution metadata. Do not include test names, assertions, source, or excerpts.
+Do not write either Shadow Report file or a numeric score; end with `SHADOW_SCORE: INVALID`.
+
+For complete execution, include per-suite evidence in `sealed_tests.suites`: suite ID, author
+model/family, expected, discovered, executed, passed, failed, skipped, setup/collection/runner
+errors, timeout, hash match, and `status: "complete"`. Aggregate counts are the sums across
+suites. Assertion failures are valid executed results. Zero tests, skips, errors, timeouts,
+hash/count mismatches, or unknown outcomes invalidate the score.
+
+For complete execution, the last response line must be `SHADOW_SCORE: {percentage}%`.
 
 ---
 
@@ -110,16 +120,56 @@ orchestrator can parse it.
     "conformance_level": 4,
     "sealed_hash": "sha256:a1b2c3d4",
     "independence": "strong",
-    "seal_author_models": ["gpt-5.6-terra", "gemini-3.1-pro-preview"],
+    "seal_author_models": ["gpt-6-astra", "gemini-3.8-flash"],
     "seal_author_families": ["openai", "google"],
-    "implementer_model": "claude-opus-4.8",
+    "implementer_model": "claude-sonnet-5.5",
     "implementer_family": "anthropic",
     "workspace_isolation": "strict",
     "spec_ambiguity": 0.06,
     "seal_broken": false,
     "spec_truncated": false
   },
-  "sealed_tests": {"total": 18, "passed": 16, "failed": 2},
+  "sealed_tests": {
+    "total": 18,
+    "passed": 16,
+    "failed": 2,
+    "suites": [
+      {
+        "suite_id": "suite-1",
+        "author_model": "gpt-6-astra",
+        "author_family": "openai",
+        "expected": 9,
+        "discovered": 9,
+        "executed": 9,
+        "passed": 8,
+        "failed": 1,
+        "skipped": 0,
+        "setup_errors": 0,
+        "collection_errors": 0,
+        "runner_errors": 0,
+        "timed_out": false,
+        "hash_match": true,
+        "status": "complete"
+      },
+      {
+        "suite_id": "suite-2",
+        "author_model": "gemini-3.8-flash",
+        "author_family": "google",
+        "expected": 9,
+        "discovered": 9,
+        "executed": 9,
+        "passed": 8,
+        "failed": 1,
+        "skipped": 0,
+        "setup_errors": 0,
+        "collection_errors": 0,
+        "runner_errors": 0,
+        "timed_out": false,
+        "hash_match": true,
+        "status": "complete"
+      }
+    ]
+  },
   "open_tests": {"total": 12, "passed": 12, "failed": 0},
   "failures": [
     {
@@ -187,8 +237,8 @@ orchestrator can parse it.
 |-------|-------|
 | Run ID | run-20260728-1030 |
 | Independence | strong |
-| Seal authors | gpt-5.6-terra (openai), gemini-3.1-pro-preview (google) |
-| Implementer | claude-opus-4.8 (anthropic) |
+| Seal authors | gpt-6-astra (openai), gemini-3.8-flash (google) |
+| Implementer | claude-sonnet-5.5 (anthropic) |
 | Cycle | 0 of 4 |
 
 ## Summary

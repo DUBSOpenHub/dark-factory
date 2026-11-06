@@ -66,6 +66,9 @@ jobs:
       - name: Shadow Score Spec Level 4 conformance
         run: python3 .github/scripts/validate_conformance.py
 
+      - name: Conformance regression tests
+        run: python3 .github/scripts/validate_conformance.py --self-test
+
       - name: Verify every agent is catalogued
         run: |
           python - <<'PY'
